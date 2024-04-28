@@ -1,6 +1,7 @@
 ﻿using System.Net.Sockets;
 using System.Net;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace ClientServerTest;
 
@@ -12,6 +13,7 @@ public class LocalShareClient : IDisposable
 {
 
     private readonly UdpClient _listener;
+    private readonly UdpClient _claimClient;
     private bool _disposed = false;
     public int Port { get; }
 
@@ -19,13 +21,16 @@ public class LocalShareClient : IDisposable
     private FileStream? writer;
     private string? fileName;
     private string? tempFileName;
-    private int fileSize = -1;
-    private int actualSize = 0;
+    private int fileSize;
+    private int actualSize;
+    private long lastIdentifier;
 
     public LocalShareClient(int port = 2780)
     {
         Port = port;
         _listener = new UdpClient(port);
+        _claimClient = new UdpClient();
+        _claimClient.EnableBroadcast = true;
     }
 
     private void Init(string? key)
@@ -39,18 +44,29 @@ public class LocalShareClient : IDisposable
         this.fileName = null;
         this.tempFileName = null;
         this.fileSize = -1;
-        actualSize = 0;
+        this.actualSize = 0;
+        this.lastIdentifier = -1;
     }
 
     public async Task Start()
     {
         while (!_disposed)
         {
-            IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
+            IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, Port);
             byte[] responseData = _listener.Receive(ref remoteEP);
+
+            HandlePacket(responseData);
+
+        }
+    }
+
+    private async Task HandlePacket(byte[] responseData)
+    {
+        await Task.Run(() =>
+        {
             if(responseData.Length < Shared.HeaderLength)
             {
-                continue;
+                return;
             }
 
             PacketType packetType;
@@ -73,8 +89,8 @@ public class LocalShareClient : IDisposable
             {
                 if(!this.key.Equals(key))
                 {
-                    continue;
-                } 
+                    return;
+                }
             } else
             {
                 Init(key);
@@ -91,7 +107,8 @@ public class LocalShareClient : IDisposable
             {
                 HandleBytePacket(responseData);
             }
-        }
+
+        });
     }
 
     private void HandleFileNamePacket(byte[] responseData)
@@ -107,7 +124,16 @@ public class LocalShareClient : IDisposable
 
     private void HandleBytePacket(byte[] responseData)
     {
-        Console.WriteLine("HandleBytePacket");
+        byte[] identifierBytes = new byte[Shared.PacketIdentifierLength];
+        for (int i = 0; i < Shared.PacketIdentifierLength; i++)
+        {
+            identifierBytes[i] = responseData[Shared.KeyLength + Shared.PacketTypeLength + i];
+        }
+        long identifier = BitConverter.ToInt64(identifierBytes);
+        if(lastIdentifier + 1 != identifier)
+        {
+            return;
+        }
         this.actualSize += responseData.Length - Shared.HeaderLength;
         if (this.writer == null)
         {
@@ -126,7 +152,7 @@ public class LocalShareClient : IDisposable
         }
         byte[] writeBytes = GetBytesFromResponse(responseData);
         writer.Write(writeBytes, 0, writeBytes.Length);
-        if(fileSize != -1 && writer != null)
+        if (fileSize != -1 && writer != null)
         {
             if(actualSize == fileSize)
             {
@@ -138,7 +164,6 @@ public class LocalShareClient : IDisposable
                         File.Move("./files/" + tempFileName, "./files/" + this.fileName);
                     }
                 }
-                Console.WriteLine("Sharing end.");
                 Init(null);
                 return;
             }
@@ -147,6 +172,25 @@ public class LocalShareClient : IDisposable
                 throw new Exception("Sent file is too large!");
             }
         }
+        this.lastIdentifier = identifier;
+        RequestPacket(key, lastIdentifier + 1);
+    }
+
+    private void RequestPacket(string key, long identifier)
+    {
+        byte[] requestPacket = new byte[Shared.KeyLength + Shared.PacketIdentifierLength];
+        byte[] keyBytes = Encoding.UTF8.GetBytes(key);
+        byte[] identifierBytes = BitConverter.GetBytes(identifier);
+        for(int i = 0; i < Shared.KeyLength; i++)
+        {
+            requestPacket[i] = keyBytes[i];
+        }
+        for(int i = 0; i < Shared.PacketIdentifierLength; i++)
+        {
+            requestPacket[i + Shared.KeyLength] = identifierBytes[i];
+        }
+        Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
+        _claimClient.Send(requestPacket, requestPacket.Length, new IPEndPoint(IPAddress.Broadcast, Port + 1));
     }
 
     private void CreateFileWithDirectory(string fileName)
@@ -181,6 +225,7 @@ public class LocalShareClient : IDisposable
     {
         _disposed = true;
         _listener.Close();
+        _claimClient.Close();
         if(writer != null) {
             writer.Close();
         }   

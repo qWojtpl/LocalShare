@@ -11,8 +11,8 @@ public class Shared
 
     public static int KeyLength { get; } = 32;
     public static int PacketTypeLength { get; } = 1;
-    public static int PacketNumberLength { get; } = 3;
-    public static int MaxDataSize { get; } = 476;
-    public static int HeaderLength { get => KeyLength + PacketTypeLength + PacketNumberLength; }
+    public static int PacketIdentifierLength { get; } = 8;
+    public static int MaxDataSize { get; } = 60000;
+    public static int HeaderLength { get => KeyLength + PacketTypeLength + PacketIdentifierLength; }
 
 }
