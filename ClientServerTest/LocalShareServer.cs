@@ -15,6 +15,7 @@ public class LocalShareServer : IDisposable
 {
 
     private readonly UdpClient _udpClient;
+    private readonly PacketSender _packetSender;
     private readonly UdpClient _requestsClient;
     private bool _disposed = false;
     public int Port { get; }
@@ -25,12 +26,13 @@ public class LocalShareServer : IDisposable
         Port = port;
         _udpClient = new UdpClient();
         _udpClient.EnableBroadcast = true;
+        _packetSender = new PacketSender(_udpClient, port);
         _requestsClient = new UdpClient(port + 1);
     }
 
     public void Start()
     {
-        SendFile("Heartbeat_Connection.mp4");
+        Task.Run(() => SendFile("Heartbeat_Connection.mp4"));
         Task.Run(StartRequestsListener);
     }
 
@@ -106,13 +108,7 @@ public class LocalShareServer : IDisposable
 
     private void SendData(PacketType packetType, string key, long identifier, byte[] data)
     {
-        SendPacket(new Packet(packetType, key, identifier, data));   
-    }
-
-    private void SendPacket(Packet packet)
-    {
-        byte[] packetBytes = packet.Create();
-        _udpClient.SendAsync(packetBytes, packetBytes.Length, new IPEndPoint(IPAddress.Broadcast, Port));
+        _packetSender.SendData(packetType, key, identifier, data);
     }
 
     public void Dispose()

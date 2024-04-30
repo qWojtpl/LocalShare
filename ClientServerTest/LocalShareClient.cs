@@ -16,6 +16,7 @@ public class LocalShareClient : IDisposable
 
     private readonly UdpClient _listener;
     private readonly UdpClient _claimClient;
+    private readonly PacketSender _packetSender;
     private bool _disposed = false;
     public int Port { get; }
 
@@ -33,6 +34,7 @@ public class LocalShareClient : IDisposable
         _listener = new UdpClient(port);
         _claimClient = new UdpClient();
         _claimClient.EnableBroadcast = true;
+        _packetSender = new PacketSender(_claimClient, port + 1);
     }
 
     private void Init(string? key)
@@ -167,14 +169,8 @@ public class LocalShareClient : IDisposable
             return;
         }
         Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
-        Packet packet = new Packet(PacketType.Request, key, identifier, new byte[0]);
-        byte[] packetBytes = packet.Create();
-        _claimClient.SendAsync(packetBytes, packetBytes.Length, new IPEndPoint(IPAddress.Broadcast, Port + 1));
+        _packetSender.SendData(PacketType.Request, key, identifier, new byte[0]);
         Thread.Sleep(350);
-        if(lastIdentifier <= identifier)
-        {
-            RequestPacket(key, identifier);
-        }
     }
 
     private void CreateFileWithDirectory(string fileName)
