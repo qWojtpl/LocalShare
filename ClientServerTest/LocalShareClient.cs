@@ -174,6 +174,10 @@ public class LocalShareClient : IDisposable
 
     private void RequestPacket(string key, long identifier)
     {
+        if(identifier <= lastIdentifier)
+        {
+            return;
+        }
         byte[] requestPacket = new byte[Shared.KeyLength + Shared.PacketIdentifierLength];
         byte[] keyBytes = Encoding.UTF8.GetBytes(key);
         byte[] identifierBytes = BitConverter.GetBytes(identifier);
@@ -186,8 +190,8 @@ public class LocalShareClient : IDisposable
             requestPacket[i + Shared.KeyLength] = identifierBytes[i];
         }
         Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
-        _claimClient.Send(requestPacket, requestPacket.Length, new IPEndPoint(IPAddress.Broadcast, Port + 1));
-        Thread.Sleep(20);
+        _claimClient.SendAsync(requestPacket, requestPacket.Length, new IPEndPoint(IPAddress.Broadcast, Port + 1));
+        Thread.Sleep(350);
         if(lastIdentifier <= identifier)
         {
             RequestPacket(key, identifier);
