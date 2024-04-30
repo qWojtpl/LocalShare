@@ -28,7 +28,7 @@ public class LocalShareServer : IDisposable
 
     public async Task Start()
     {
-        SendFile("movie.mp4");
+        SendFile("Heartbeat_Connection.mp4");
         StartRequestsListener();
         //SendFile("test.txt");
     }

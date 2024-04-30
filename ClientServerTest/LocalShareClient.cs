@@ -67,22 +67,9 @@ public class LocalShareClient : IDisposable
             return;
         }
 
-        PacketType packetType;
-        if(responseData[0] < 3)
-        {
-            packetType = (PacketType) responseData[0];
-        } else
-        {
-            packetType = PacketType.Byte;
-        }
-
-        byte[] keyBytes = new byte[Shared.KeyLength];
-        for(int i = 0; i < Shared.KeyLength; i++)
-        {
-            keyBytes[i] = responseData[i + 1];
-        }
+        Packet packet = new Packet(responseData);
             
-        string key = GetText(keyBytes);
+        string key = packet.Key;
         if(this.key != null)
         {
             if(!this.key.Equals(key))
@@ -94,49 +81,49 @@ public class LocalShareClient : IDisposable
             Init(key);
         }
 
+        PacketType packetType = packet.Type;
+
         if(PacketType.FileName.Equals(packetType))
         {
-            HandleFileNamePacket(responseData);
+            HandleFileNamePacket(packet);
         }
         else if(PacketType.FileSize.Equals(packetType))
         {
-            HandleFileSizePacket(responseData);
+            HandleFileSizePacket(packet);
         } else if(PacketType.Byte.Equals(packetType))
         {
-            HandleBytePacket(responseData);
+            HandleBytePacket(packet);
         }
     }
 
-    private void HandleFileNamePacket(byte[] responseData)
+    private void HandleFileNamePacket(Packet packet)
     {
-        this.fileName = GetTextFromResponse(responseData); 
+        this.fileName = GetText(packet.Data); 
         CreateFileWithDirectory(fileName);
     }
 
-    private void HandleFileSizePacket(byte[] responseData)
+    private void HandleFileSizePacket(Packet packet)
     {
-        this.fileSize = int.Parse(GetTextFromResponse(responseData));
+        this.fileSize = int.Parse(GetText(packet.Data));
     }
 
-    private void HandleBytePacket(byte[] responseData)
+    private void HandleBytePacket(Packet packet)
     {
-        byte[] identifierBytes = new byte[Shared.PacketIdentifierLength];
-        for (int i = 0; i < Shared.PacketIdentifierLength; i++)
-        {
-            identifierBytes[i] = responseData[Shared.KeyLength + Shared.PacketTypeLength + i];
-        }
-        long identifier = BitConverter.ToInt64(identifierBytes);
+        long identifier = packet.Identifier;
         if(lastIdentifier + 1 != identifier)
         {
             return;
         }
-        this.actualSize += responseData.Length - Shared.HeaderLength;
+        this.actualSize += packet.Data.Length;
         if (this.writer == null)
         {
             if(this.fileName == null)
             {
                 Console.WriteLine("Not found filename, creating custom name...");
-                tempFileName = "./files/unknown-" + DateTime.Now;
+                tempFileName = "./files/unknown-" + DateTime.Now.ToString()
+                    .Replace(" ", "-")
+                    .Replace(":", "-")
+                    .Replace(".", "-");
                 CreateFileWithDirectory(tempFileName);
                 this.writer = File.OpenWrite(tempFileName);
             }
@@ -146,8 +133,7 @@ public class LocalShareClient : IDisposable
                 this.writer = File.OpenWrite("./files/" + this.fileName);
             }
         }
-        byte[] writeBytes = GetBytesFromResponse(responseData);
-        writer.Write(writeBytes, 0, writeBytes.Length);
+        writer.Write(packet.Data, 0, packet.Data.Length);
         if (fileSize != -1 && writer != null)
         {
             if(actualSize == fileSize)
@@ -203,27 +189,10 @@ public class LocalShareClient : IDisposable
         Directory.CreateDirectory("./files/");
         File.Create("./files/" + fileName).Close();
     }
-    
-    private byte[] GetBytesFromResponse(byte[] bytes)
-    {
-        byte[] data = new byte[bytes.Length - Shared.HeaderLength];
-
-        for(int i = Shared.HeaderLength; i < bytes.Length; i++)
-        {
-            data[i - Shared.HeaderLength] = bytes[i];
-        }
-
-        return data;
-    }
 
     private string GetText(byte[] bytes)
     {
         return Encoding.UTF8.GetString(bytes);
-    }
-
-    private string GetTextFromResponse(byte[] bytes)
-    {
-        return GetText(GetBytesFromResponse(bytes));
     }
 
     public void Dispose()
