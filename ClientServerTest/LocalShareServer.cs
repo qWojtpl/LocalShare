@@ -107,7 +107,6 @@ public class LocalShareServer : IDisposable
             {
                 bufferSize = identifier * Shared.MaxDataSize - fileSize;
             }
-            //Console.WriteLine(bufferSize);
             byte[] buffer = new byte[bufferSize];
             stream.Seek(identifier * Shared.MaxDataSize, SeekOrigin.Begin);
             stream.Read(buffer, 0, buffer.Length);
@@ -137,7 +136,7 @@ public class LocalShareServer : IDisposable
         {
             newData[i + Shared.HeaderLength] = data[i];
         }
-        _udpClient.Send(newData, newData.Length, new IPEndPoint(IPAddress.Broadcast, Port));
+        _udpClient.SendAsync(newData, newData.Length, new IPEndPoint(IPAddress.Broadcast, Port));
     }
 
     private string GenerateKey()

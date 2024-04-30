@@ -55,60 +55,56 @@ public class LocalShareClient : IDisposable
             IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, Port);
             byte[] responseData = _listener.Receive(ref remoteEP);
 
-            HandlePacket(responseData);
+            Task.Run(() => HandlePacket(responseData));
 
         }
     }
 
-    private async Task HandlePacket(byte[] responseData)
+    private void HandlePacket(byte[] responseData)
     {
-        await Task.Run(() =>
+        if(responseData.Length < Shared.HeaderLength)
         {
-            if(responseData.Length < Shared.HeaderLength)
+            return;
+        }
+
+        PacketType packetType;
+        if(responseData[0] < 3)
+        {
+            packetType = (PacketType) responseData[0];
+        } else
+        {
+            packetType = PacketType.Byte;
+        }
+
+        byte[] keyBytes = new byte[Shared.KeyLength];
+        for(int i = 0; i < Shared.KeyLength; i++)
+        {
+            keyBytes[i] = responseData[i + 1];
+        }
+            
+        string key = GetText(keyBytes);
+        if(this.key != null)
+        {
+            if(!this.key.Equals(key))
             {
                 return;
             }
+        } else
+        {
+            Init(key);
+        }
 
-            PacketType packetType;
-            if(responseData[0] < 3)
-            {
-                packetType = (PacketType) responseData[0];
-            } else
-            {
-                packetType = PacketType.Byte;
-            }
-
-            byte[] keyBytes = new byte[Shared.KeyLength];
-            for(int i = 0; i < Shared.KeyLength; i++)
-            {
-                keyBytes[i] = responseData[i + 1];
-            }
-            
-            string key = GetText(keyBytes);
-            if(this.key != null)
-            {
-                if(!this.key.Equals(key))
-                {
-                    return;
-                }
-            } else
-            {
-                Init(key);
-            }
-
-            if(PacketType.FileName.Equals(packetType))
-            {
-                HandleFileNamePacket(responseData);
-            }
-            else if(PacketType.FileSize.Equals(packetType))
-            {
-                HandleFileSizePacket(responseData);
-            } else if(PacketType.Byte.Equals(packetType))
-            {
-                HandleBytePacket(responseData);
-            }
-
-        });
+        if(PacketType.FileName.Equals(packetType))
+        {
+            HandleFileNamePacket(responseData);
+        }
+        else if(PacketType.FileSize.Equals(packetType))
+        {
+            HandleFileSizePacket(responseData);
+        } else if(PacketType.Byte.Equals(packetType))
+        {
+            HandleBytePacket(responseData);
+        }
     }
 
     private void HandleFileNamePacket(byte[] responseData)
@@ -191,6 +187,11 @@ public class LocalShareClient : IDisposable
         }
         Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
         _claimClient.Send(requestPacket, requestPacket.Length, new IPEndPoint(IPAddress.Broadcast, Port + 1));
+        Thread.Sleep(20);
+        if(lastIdentifier <= identifier)
+        {
+            RequestPacket(key, identifier);
+        }
     }
 
     private void CreateFileWithDirectory(string fileName)
