@@ -1,5 +1,4 @@
-﻿
-namespace ClientServerTest;
+﻿namespace ClientServerTest.Packets;
 
 public enum PacketType
 {
@@ -7,6 +6,7 @@ public enum PacketType
     FileName,
     FileSize,
     Text,
+    Request,
     Byte
 
 }

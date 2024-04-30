@@ -2,6 +2,8 @@
 using System.Net;
 using System.Text;
 using System.Security.Cryptography;
+using ClientServerTest.Packets;
+using ClientServerTest.Misc;
 
 namespace ClientServerTest;
 
@@ -48,7 +50,7 @@ public class LocalShareClient : IDisposable
         this.lastIdentifier = -1;
     }
 
-    public async Task Start()
+    public void Start()
     {
         while (!_disposed)
         {
@@ -98,13 +100,13 @@ public class LocalShareClient : IDisposable
 
     private void HandleFileNamePacket(Packet packet)
     {
-        this.fileName = GetText(packet.Data); 
+        this.fileName = EncodingManager.GetText(packet.Data); 
         CreateFileWithDirectory(fileName);
     }
 
     private void HandleFileSizePacket(Packet packet)
     {
-        this.fileSize = int.Parse(GetText(packet.Data));
+        this.fileSize = int.Parse(EncodingManager.GetText(packet.Data));
     }
 
     private void HandleBytePacket(Packet packet)
@@ -164,19 +166,10 @@ public class LocalShareClient : IDisposable
         {
             return;
         }
-        byte[] requestPacket = new byte[Shared.KeyLength + Shared.PacketIdentifierLength];
-        byte[] keyBytes = Encoding.UTF8.GetBytes(key);
-        byte[] identifierBytes = BitConverter.GetBytes(identifier);
-        for(int i = 0; i < Shared.KeyLength; i++)
-        {
-            requestPacket[i] = keyBytes[i];
-        }
-        for(int i = 0; i < Shared.PacketIdentifierLength; i++)
-        {
-            requestPacket[i + Shared.KeyLength] = identifierBytes[i];
-        }
         Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
-        _claimClient.SendAsync(requestPacket, requestPacket.Length, new IPEndPoint(IPAddress.Broadcast, Port + 1));
+        Packet packet = new Packet(PacketType.Request, key, identifier, new byte[0]);
+        byte[] packetBytes = packet.Create();
+        _claimClient.SendAsync(packetBytes, packetBytes.Length, new IPEndPoint(IPAddress.Broadcast, Port + 1));
         Thread.Sleep(350);
         if(lastIdentifier <= identifier)
         {
@@ -188,11 +181,6 @@ public class LocalShareClient : IDisposable
     {
         Directory.CreateDirectory("./files/");
         File.Create("./files/" + fileName).Close();
-    }
-
-    private string GetText(byte[] bytes)
-    {
-        return Encoding.UTF8.GetString(bytes);
     }
 
     public void Dispose()
