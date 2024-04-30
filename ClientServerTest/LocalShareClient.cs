@@ -15,6 +15,7 @@ public class LocalShareClient : IDisposable
 {
 
     private readonly UdpClient _listener;
+    private readonly PacketListener _packetListener;
     private readonly UdpClient _claimClient;
     private readonly PacketSender _packetSender;
     private bool _disposed = false;
@@ -32,6 +33,7 @@ public class LocalShareClient : IDisposable
     {
         Port = port;
         _listener = new UdpClient(port);
+        _packetListener = new PacketListener(_listener, port, HandlePacket);
         _claimClient = new UdpClient();
         _claimClient.EnableBroadcast = true;
         _packetSender = new PacketSender(_claimClient, port + 1);
@@ -54,24 +56,11 @@ public class LocalShareClient : IDisposable
 
     public void Start()
     {
-        while (!_disposed)
-        {
-            IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, Port);
-            byte[] responseData = _listener.Receive(ref remoteEP);
-
-            Task.Run(() => HandlePacket(responseData));
-
-        }
+        _packetListener.StartListener();
     }
 
-    private void HandlePacket(byte[] responseData)
+    private void HandlePacket(Packet packet)
     {
-        if(responseData.Length < Shared.HeaderLength)
-        {
-            return;
-        }
-
-        Packet packet = new Packet(responseData);
             
         string key = packet.Key;
         if(this.key != null)
@@ -182,8 +171,6 @@ public class LocalShareClient : IDisposable
     public void Dispose()
     {
         _disposed = true;
-        _listener.Close();
-        _claimClient.Close();
         if(writer != null) {
             writer.Close();
         }   
