@@ -14,11 +14,8 @@ namespace ClientServerTest;
 public class LocalShareClient : IDisposable
 {
 
-    private readonly UdpClient _listener;
     private readonly PacketListener _packetListener;
-    private readonly UdpClient _claimClient;
     private readonly PacketSender _packetSender;
-    private bool _disposed = false;
     public int Port { get; }
 
     private string? key;
@@ -32,11 +29,8 @@ public class LocalShareClient : IDisposable
     public LocalShareClient(int port = 2780)
     {
         Port = port;
-        _listener = new UdpClient(port);
-        _packetListener = new PacketListener(_listener, port, HandlePacket);
-        _claimClient = new UdpClient();
-        _claimClient.EnableBroadcast = true;
-        _packetSender = new PacketSender(_claimClient, port + 1);
+        _packetListener = new PacketListener(port, HandlePacket);
+        _packetSender = new PacketSender(port + 1);
     }
 
     private void Init(string? key)
@@ -61,7 +55,6 @@ public class LocalShareClient : IDisposable
 
     private void HandlePacket(Packet packet)
     {
-            
         string key = packet.Key;
         if(this.key != null)
         {
@@ -151,7 +144,7 @@ public class LocalShareClient : IDisposable
         RequestPacket(key, lastIdentifier + 1);
     }
 
-    private void RequestPacket(string key, long identifier)
+    private void RequestPacket(string key, long identifier, int sleepTime = 350)
     {
         if(identifier <= lastIdentifier)
         {
@@ -159,7 +152,12 @@ public class LocalShareClient : IDisposable
         }
         Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
         _packetSender.SendData(PacketType.Request, key, identifier, new byte[0]);
-        Thread.Sleep(350);
+        Thread.Sleep(sleepTime);
+        if(lastIdentifier <= identifier)
+        {
+            Console.WriteLine("Request timed out.");
+            RequestPacket(key, identifier, sleepTime + 100);
+        }
     }
 
     private void CreateFileWithDirectory(string fileName)
@@ -170,7 +168,6 @@ public class LocalShareClient : IDisposable
 
     public void Dispose()
     {
-        _disposed = true;
         if(writer != null) {
             writer.Close();
         }   

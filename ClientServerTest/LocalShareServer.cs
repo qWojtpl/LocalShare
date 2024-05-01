@@ -14,9 +14,7 @@ namespace ClientServerTest;
 public class LocalShareServer
 {
 
-    private readonly UdpClient _udpClient;
     private readonly PacketSender _packetSender;
-    private readonly UdpClient _requestsListener;
     private readonly PacketListener _packetListener;
     public int Port { get; }
     private Dictionary<string, string> keyFiles = new();
@@ -24,11 +22,8 @@ public class LocalShareServer
     public LocalShareServer(int port = 2780)
     {
         Port = port;
-        _udpClient = new UdpClient();
-        _udpClient.EnableBroadcast = true;
-        _packetSender = new PacketSender(_udpClient, port);
-        _requestsListener = new UdpClient(port + 1);
-        _packetListener = new PacketListener(_requestsListener, port + 1, HandleRequest);
+        _packetSender = new PacketSender(port);
+        _packetListener = new PacketListener(port + 1, HandleRequest);
     }
 
     public void Start()
@@ -50,7 +45,7 @@ public class LocalShareServer
     
     public void SendFile(string path)
     {
-        Task.Run(() =>
+        new Thread(() =>
         {
             FileInfo fileInfo = new FileInfo(path);
             if (!fileInfo.Exists)
@@ -68,7 +63,7 @@ public class LocalShareServer
             SendData(PacketType.FileName, key, 0, EncodingManager.GetBytes(fileInfo.Name));
             SendData(PacketType.FileSize, key, 0, EncodingManager.GetBytes(fileSize + ""));
             SendFilePacket(key, path, 0);
-        });
+        }).Start();
     }
 
     private void SendFilePacket(string key, string path, long identifier)

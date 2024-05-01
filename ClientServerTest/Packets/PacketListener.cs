@@ -9,19 +9,19 @@ public class PacketListener : IDisposable
     private bool _disposed = false;
     private UdpClient _listener;
     public int Port { get; }
-    private Action<Packet> _action;
+    private Action<Packet> _handler;
 
 
-    public PacketListener(UdpClient listener, int port, Action<Packet> action)
+    public PacketListener(int port, Action<Packet> handler)
     {
-        this._listener = listener;
+        this._listener = new UdpClient(port);
         Port = port;
-        this._action = action;
+        this._handler = handler;
     }
 
     public void StartListener()
     {
-        Task.Run(() =>
+        new Thread(() =>
         {
             while (!_disposed)
             {
@@ -33,9 +33,9 @@ public class PacketListener : IDisposable
                     continue;
                 }
 
-                Task.Run(() => _action.Invoke(new Packet(responseData)));
+                new Thread(() => _handler.Invoke(new Packet(responseData))).Start();
             }
-        });
+        }).Start();
     }
 
     public void Dispose()
