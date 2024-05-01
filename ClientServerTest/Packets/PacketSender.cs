@@ -9,9 +9,10 @@ public class PacketSender : IDisposable
     private UdpClient _udpClient;
     public int Port { get; }
 
-    public PacketSender(UdpClient udpClient, int port)
+    public PacketSender(int port)
     {
-        _udpClient = udpClient;
+        _udpClient = new UdpClient();
+        _udpClient.EnableBroadcast = true;
         Port = port;
     }
 

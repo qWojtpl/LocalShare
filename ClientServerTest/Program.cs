@@ -6,5 +6,12 @@ internal class Program
     {
         new LocalShareServer().Start();
         new LocalShareClient().Start();
+        Task.Run(() =>
+        {
+            while(true)
+            {
+                Thread.Sleep(1);
+            }
+        }).Wait();
     }
 }

@@ -11,50 +11,29 @@ using ClientServerTest.Packets;
 
 namespace ClientServerTest;
 
-public class LocalShareServer : IDisposable
+public class LocalShareServer
 {
 
-    private readonly UdpClient _udpClient;
     private readonly PacketSender _packetSender;
-    private readonly UdpClient _requestsClient;
-    private bool _disposed = false;
+    private readonly PacketListener _packetListener;
     public int Port { get; }
     private Dictionary<string, string> keyFiles = new();
 
     public LocalShareServer(int port = 2780)
     {
         Port = port;
-        _udpClient = new UdpClient();
-        _udpClient.EnableBroadcast = true;
-        _packetSender = new PacketSender(_udpClient, port);
-        _requestsClient = new UdpClient(port + 1);
+        _packetSender = new PacketSender(port);
+        _packetListener = new PacketListener(port + 1, HandleRequest);
     }
 
     public void Start()
     {
-        Task.Run(() => SendFile("Heartbeat_Connection.mp4"));
-        Task.Run(StartRequestsListener);
+        _packetListener.StartListener();
+        SendFile("Heartbeat_Connection.mp4");
     }
 
-    private void StartRequestsListener()
+    private void HandleRequest(Packet packet)
     {
-        while(!_disposed)
-        {
-            IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, Port + 1);
-            byte[] responseData = _requestsClient.Receive(ref remoteEP);
-
-            Task.Run(() => HandleRequest(responseData));
-        }
-    }
-
-    private void HandleRequest(byte[] responseData)
-    {
-        if (responseData.Length != Shared.HeaderLength)
-        {
-            return;
-        }
-
-        Packet packet = new Packet(responseData);
 
         if (!keyFiles.ContainsKey(packet.Key))
         {
@@ -63,30 +42,28 @@ public class LocalShareServer : IDisposable
 
         SendFilePacket(packet.Key, keyFiles[packet.Key], packet.Identifier);
     }
-
-    private void SendText(string key, string text)
-    {
-        SendData(PacketType.Text, key, 0, EncodingManager.GetBytes(text));
-    }
     
     public void SendFile(string path)
     {
-        FileInfo fileInfo = new FileInfo(path);
-        if (!fileInfo.Exists)
+        new Thread(() =>
         {
-            throw new FileNotFoundException(path);
-        }
-        string key = KeyGenerator.GenerateKey();
-        long fileSize = fileInfo.Length;
-        if(fileSize / Shared.MaxDataSize + 1 >= Math.Pow(10, Shared.PacketIdentifierLength))
-        {
-            Console.WriteLine("Overall file size is too big. Consider changing MaxDataSize.");
-            return;
-        }
-        keyFiles[key] = path;
-        SendData(PacketType.FileName, key, 0, EncodingManager.GetBytes(fileInfo.Name));
-        SendData(PacketType.FileSize, key, 0, EncodingManager.GetBytes(fileSize + ""));
-        SendFilePacket(key, path, 0);
+            FileInfo fileInfo = new FileInfo(path);
+            if (!fileInfo.Exists)
+            {
+                throw new FileNotFoundException(path);
+            }
+            string key = KeyGenerator.GenerateKey();
+            long fileSize = fileInfo.Length;
+            if (fileSize / Shared.MaxDataSize + 1 >= Math.Pow(10, Shared.PacketIdentifierLength))
+            {
+                Console.WriteLine("Overall file size is too big. Consider changing MaxDataSize.");
+                return;
+            }
+            keyFiles[key] = path;
+            SendData(PacketType.FileName, key, 0, EncodingManager.GetBytes(fileInfo.Name));
+            SendData(PacketType.FileSize, key, 0, EncodingManager.GetBytes(fileSize + ""));
+            SendFilePacket(key, path, 0);
+        }).Start();
     }
 
     private void SendFilePacket(string key, string path, long identifier)
@@ -109,13 +86,6 @@ public class LocalShareServer : IDisposable
     private void SendData(PacketType packetType, string key, long identifier, byte[] data)
     {
         _packetSender.SendData(packetType, key, identifier, data);
-    }
-
-    public void Dispose()
-    {
-        _disposed = true;
-        _udpClient.Close();
-        _requestsClient.Close();
     }
 
 }
