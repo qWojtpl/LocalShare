@@ -1,3 +1,5 @@
 .vs/
 ClientServerTest/obj
 ClientServerTest/bin
+LocalShareApplication/bin
+LocalShareApplication/obj
