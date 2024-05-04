@@ -4,12 +4,50 @@
 <div id="slide-page" class="page" style="@Loader.PageStyles["Upload"]">
 
     <div class="header">
-        <div class="header-image">
-
+        <div class="header-image" @onclick="@Loader.UnloadLatest">
+            <img src="images/back-arrow.svg" />
         </div>
         <div class="header-text">
             Upload
         </div>
+    </div>
+
+    <div class="empty-text">
+        <span>You actually aren't sending any files.</span>
+    </div>
+
+    <div class="entries-container">
+        <div class="entries">
+            @for(int i = 0; i < 100; i++)
+            {
+                <div class="entry">
+                    <div class="entry-image">
+                        <img src="images/file.svg" />
+                    </div>
+                    <div class="entry-middle">
+                        <div class="entry-name">
+                            test.mp4
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-percentage">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="entry-end">
+                        <div class="entry-cancel">
+                            Cancel
+                        </div>
+                        <div class="entry-percentage">
+                            100%
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="upload-new">
+        <span>+</span>
     </div>
 
 </div>
