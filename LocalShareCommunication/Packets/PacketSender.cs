@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 
-namespace ClientServerTest.Packets;
+namespace LocalShareCommunication.Packets;
 
 public class PacketSender : IDisposable
 {

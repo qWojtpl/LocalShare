@@ -1,4 +1,4 @@
-﻿namespace ClientServerTest.Packets;
+﻿namespace LocalShareCommunication.Packets;
 
 public enum PacketType
 {

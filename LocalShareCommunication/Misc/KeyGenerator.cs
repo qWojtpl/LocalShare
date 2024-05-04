@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace ClientServerTest.Misc;
+namespace LocalShareCommunication.Misc;
 
 public static class KeyGenerator
 {

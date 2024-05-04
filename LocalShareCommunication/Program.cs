@@ -1,4 +1,4 @@
-﻿namespace ClientServerTest;
+﻿namespace LocalShareCommunication;
 
 internal class Program
 {

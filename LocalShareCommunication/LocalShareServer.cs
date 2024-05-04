@@ -6,10 +6,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using ClientServerTest.Misc;
-using ClientServerTest.Packets;
+using LocalShareCommunication.Misc;
+using LocalShareCommunication.Packets;
 
-namespace ClientServerTest;
+namespace LocalShareCommunication;
 
 public class LocalShareServer
 {

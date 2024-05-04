@@ -1,7 +1,7 @@
-﻿using ClientServerTest.Misc;
+﻿using LocalShareCommunication.Misc;
 using System.Text;
 
-namespace ClientServerTest.Packets;
+namespace LocalShareCommunication.Packets;
 
 public class Packet
 {

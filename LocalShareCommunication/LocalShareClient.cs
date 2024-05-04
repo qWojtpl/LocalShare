@@ -2,10 +2,10 @@
 using System.Net;
 using System.Text;
 using System.Security.Cryptography;
-using ClientServerTest.Packets;
-using ClientServerTest.Misc;
+using LocalShareCommunication.Packets;
+using LocalShareCommunication.Misc;
 
-namespace ClientServerTest;
+namespace LocalShareCommunication;
 
 // First 1 byte is packet type
 // Next 32 bytes are key
