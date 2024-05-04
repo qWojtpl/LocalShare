@@ -1,1 +1,141 @@
 ﻿
+@font-face {
+    font-family: Sarabun;
+    src: url(../fonts/Sarabun/Sarabun-Regular.ttf);
+    font-weight: 100;
+}
+
+@font-face {
+    font-family: Sarabun;
+    src: url(../fonts/Sarabun/Sarabun-Bold.ttf);
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: Sarabun;
+    src: url(../fonts/Sarabun/Sarabun-ExtraBold.ttf);
+    font-weight: 900;
+}
+
+:root {
+    --main-color: #17AB5B;
+    --subcolor: #1C9553;
+    --second-color: #FFFFFF;
+    --footer-background-color: #D9D9D9;
+    --error-color: #EE0000;
+    --accept-color: #0D662C;
+
+    --font-color: #FFFFFF;
+    --font-subcolor: #797979;
+    --font-second-color: #000000;
+}
+
+* {
+    font-family: Sarabun, sans-serif;
+    font-weight: 100;
+    font-size: 2.77vw;
+    color: var(--font-color);
+}
+
+/* Pages */
+
+#landing-page.page {
+    animation-duration: 1s;
+}
+
+#landing-page .header {
+    width: 100vw;
+    height: 45%;
+    background-color: var(--main-color);
+    background-image: url(../images/background.svg);
+    background-size: contain;
+}
+
+    #landing-page .header .language {
+        position: absolute;
+        top: 3.75vw;
+        left: 59.17vw;
+        width: 35.55vw;
+        height: 8.33vw;
+        background-color: rgba(98, 98, 98, 0.45);
+        border-radius: 45px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding-bottom: 1vw;
+    }
+
+    #landing-page .header .language-text {
+        margin-left: 5vw;
+        margin-top: 0.5vw;
+        font-size: 140%;
+    }
+
+    #landing-page .header .language-image {
+        margin-left: 1vw;
+        margin-top: 1.5vw;
+    }
+
+    #landing-page .header .welcome {
+        margin-left: 4vw;
+        width: 92vw;
+        margin-right: 4vw;
+        padding-top: 10vw;
+    }
+
+    #landing-page .header .welcome-main-text {
+        font-weight: 900;
+        font-size: 320%;
+    }
+
+    #landing-page .header .welcome-subtext {
+        display: block;
+        font-size: 140%;
+        padding-top: 3vw;
+    }
+
+#landing-page .footer {
+    position: absolute;
+    width: 100vw;
+    height: 55%;
+    display: flex;
+    flex-wrap: wrap;
+    background-color: var(--footer-background-color);
+    gap: 0.5vw;
+}
+
+    #landing-page .footer .button {
+        background-color: var(--second-color);
+        width: 41.75vw;
+        cursor: pointer;
+        padding: 4vw;
+    }
+
+        #landing-page .footer .button-main-text {
+            color: var(--font-second-color);
+            font-weight: 600;
+            font-size: 200%;
+        }
+
+        #landing-page .footer .button-subtext {
+            color: var(--font-subcolor);
+            font-weight: 600;
+            font-size: 150%;
+            display: block;
+        }
+
+#slide-page {
+    background-color: white;
+}
+
+#slide-page .header {
+    width: 100vw;
+    height: 19.44vw;
+    background-color: var(--main-color);
+}
+
+    #slide-page .header-text {
+        color: var(--font-color);
+        font-size: 240%;
+        font-weight: 600;
+    }
