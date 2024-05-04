@@ -271,3 +271,69 @@
             font-size: 160%;
             height: 10vw;
         }
+
+#slide-page .options-container {
+    width: 100vw;
+    height: 88vh;
+    overflow-y: scroll;
+    scrollbar-width: none; 
+    scroll-behavior: smooth;
+}
+
+    #slide-page .options {
+        display: flex;
+        flex-direction: column;
+        margin-top: 3vw;
+        gap: 6vw;
+        margin-bottom: 30vw;
+    }
+
+#slide-page .option {
+    width: 92vw;
+    margin-left: 4vw;
+    display: flex;
+    align-items: center;
+}
+
+    #slide-page .option-label {
+        font-weight: 600;
+        font-size: 200%;
+        color: var(--font-second-color);
+        width: 40vw;
+    }
+
+    #slide-page .option-label-checkbox {
+        width: 90vw;
+    }
+
+    #slide-page .option-input input {
+        font-weight: 600;
+        font-size: 200%;
+        color: var(--font-second-color);
+        width: 50vw;
+        outline: none;
+        border: 2px solid var(--subcolor);
+        accent-color: var(--subcolor);
+    }
+
+    #slide-page .option-input-checkbox input {
+        transform: scale(1.45);
+        width: 5vw;
+    }
+
+#slide-page .option-button {
+    width: 92vw;
+    margin-left: 4vw;
+    font-size: 200%;
+    font-weight: 600;
+    outline: none;
+    border: none;
+    background-color: var(--subcolor);
+    padding: 1.5vw;
+    transition: .1s;
+    cursor: pointer;
+}
+
+    #slide-page .option-button:hover {
+        background-color: var(--progress-bar-background);
+    }
