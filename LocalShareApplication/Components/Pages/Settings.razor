@@ -14,7 +14,7 @@
             SettingsManager.Port = int.Parse(port);
             CheckSamePort();
             this.port = SettingsManager.Port;
-        } catch(Exception e)
+        } catch(Exception)
         {
             SettingsManager.Port = SettingsManager.Default.Port;
         }
@@ -28,8 +28,7 @@
             SettingsManager.CallbackPort = int.Parse(callbackPort);
             CheckSamePort();
             this.callbackPort = SettingsManager.CallbackPort;
-        }
-        catch (Exception e)
+        } catch (Exception)
         {
             SettingsManager.CallbackPort = SettingsManager.Default.CallbackPort;
         }
