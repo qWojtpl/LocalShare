@@ -1,16 +1,10 @@
-﻿using System.Net.Sockets;
-using System.Net;
-using System.Text;
-using System.Security.Cryptography;
+﻿using System.Net;
 using LocalShareCommunication.Packets;
 using LocalShareCommunication.Misc;
+using LocalShareCommunication.Client;
 
 namespace LocalShareCommunication;
 
-// First 1 byte is packet type
-// Next 32 bytes are key
-// Next 3 bytes are number of packet
-// Next 476 bytes are file bytes
 public class LocalShareClient : IDisposable
 {
 
@@ -18,34 +12,13 @@ public class LocalShareClient : IDisposable
     private readonly PacketSender _packetSender;
     public int Port { get; }
 
-    private string? key;
-    private FileStream? writer;
-    private string? fileName;
-    private string? tempFileName;
-    private int fileSize;
-    private int actualSize;
-    private long lastIdentifier;
+    private Dictionary<string, FileProcess> fileProcesses = new();
 
     public LocalShareClient(int port = 2780)
     {
         Port = port;
         _packetListener = new PacketListener(port, HandlePacket);
         _packetSender = new PacketSender(port + 1);
-    }
-
-    private void Init(string? key)
-    {
-        this.key = key;
-        if(this.writer != null)
-        {
-            this.writer.Close();
-        }
-        this.writer = null;
-        this.fileName = null;
-        this.tempFileName = null;
-        this.fileSize = -1;
-        this.actualSize = 0;
-        this.lastIdentifier = -1;
     }
 
     public void Start()
@@ -56,108 +29,110 @@ public class LocalShareClient : IDisposable
     private void HandlePacket(Packet packet)
     {
         string key = packet.Key;
-        if(this.key != null)
+
+        FileProcess process;
+
+        if (!fileProcesses.ContainsKey(key))
         {
-            if(!this.key.Equals(key))
-            {
-                return;
-            }
+            process = new FileProcess(key);
+            fileProcesses[key] = process;
         } else
         {
-            Init(key);
+            process = fileProcesses[key];
         }
 
         PacketType packetType = packet.Type;
 
         if(PacketType.FileName.Equals(packetType))
         {
-            HandleFileNamePacket(packet);
+            HandleFileNamePacket(process, packet);
         }
         else if(PacketType.FileSize.Equals(packetType))
         {
-            HandleFileSizePacket(packet);
+            HandleFileSizePacket(process, packet);
         } else if(PacketType.Byte.Equals(packetType))
         {
-            HandleBytePacket(packet);
+            HandleBytePacket(process, packet);
+        }
+
+        if(process.LastIdentifier == -1)
+        {
+            if(process.FileName != null && process.FileSize != -1)
+            {
+                RequestPacket(process, 0);
+            }
         }
     }
 
-    private void HandleFileNamePacket(Packet packet)
+    private void HandleFileNamePacket(FileProcess process, Packet packet)
     {
-        this.fileName = EncodingManager.GetText(packet.Data); 
-        CreateFileWithDirectory(fileName);
+        process.FileName = EncodingManager.GetText(packet.Data); 
+        CreateFileWithDirectory(process.FileName);
+        RequestFileSizePacket(process);
     }
 
-    private void HandleFileSizePacket(Packet packet)
+    private void HandleFileSizePacket(FileProcess process, Packet packet)
     {
-        this.fileSize = int.Parse(EncodingManager.GetText(packet.Data));
+        process.FileSize = int.Parse(EncodingManager.GetText(packet.Data));
     }
 
-    private void HandleBytePacket(Packet packet)
+    private void HandleBytePacket(FileProcess process, Packet packet)
     {
         long identifier = packet.Identifier;
-        if(lastIdentifier + 1 != identifier)
+        if(process.LastIdentifier + 1 != identifier)
         {
             return;
         }
-        this.actualSize += packet.Data.Length;
-        if (this.writer == null)
+        process.LastIdentifier = identifier;
+        process.ActualSize += packet.Data.Length;
+        if (process.Writer == null)
         {
-            if(this.fileName == null)
-            {
-                Console.WriteLine("Not found filename, creating custom name...");
-                tempFileName = "./files/unknown-" + DateTime.Now.ToString()
-                    .Replace(" ", "-")
-                    .Replace(":", "-")
-                    .Replace(".", "-");
-                CreateFileWithDirectory(tempFileName);
-                this.writer = File.OpenWrite(tempFileName);
-            }
-            else
-            {
-                Console.WriteLine("Found filename, creating new file...");
-                this.writer = File.OpenWrite("./files/" + this.fileName);
-            }
+            Console.WriteLine("Found filename, creating new file...");
+            process.Writer = File.OpenWrite("./files/" + process.FileName);
         }
-        writer.Write(packet.Data, 0, packet.Data.Length);
-        if (fileSize != -1 && writer != null)
+        process.Writer.Write(packet.Data, 0, packet.Data.Length);
+        if (process.FileSize != -1)
         {
-            if(actualSize == fileSize)
+            if (process.ActualSize == process.FileSize)
             {
-                if(this.fileName != null && tempFileName != null)
-                {
-                    if(!this.fileName.Equals(writer.Name))
-                    {
-                        Console.WriteLine("Renaming file...");
-                        File.Move("./files/" + tempFileName, "./files/" + this.fileName);
-                    }
-                }
-                Init(null);
+                Console.WriteLine("CLOSING!");
+                
+                process.Writer.Close();
+                fileProcesses.Remove(process.Key, out _);
                 return;
             }
-            else if(actualSize >= fileSize)
+            else if(process.ActualSize >= process.FileSize)
             {
+                process.Writer.Close();
                 throw new Exception("Sent file is too large!");
             }
         }
-        this.lastIdentifier = identifier;
-        RequestPacket(key, lastIdentifier + 1);
+        RequestPacket(process, process.LastIdentifier + 1);
     }
 
-    private void RequestPacket(string key, long identifier, int sleepTime = 350)
+    private void RequestPacket(FileProcess process, long identifier, int sleepTime = 350)
     {
-        if(identifier <= lastIdentifier)
+        if(identifier <= process.LastIdentifier)
         {
             return;
         }
         Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
-        _packetSender.SendData(PacketType.Request, key, identifier, new byte[0]);
+        _packetSender.SendData(PacketType.Byte, process.Key, identifier, new byte[0]);
         Thread.Sleep(sleepTime);
-        if(lastIdentifier <= identifier)
+        if(!fileProcesses.ContainsKey(process.Key))
+        {
+            return;
+        }
+        if(process.LastIdentifier <= identifier)
         {
             Console.WriteLine("Request timed out.");
-            RequestPacket(key, identifier, sleepTime + 100);
+            RequestPacket(process, identifier, sleepTime + 100);
         }
+    }
+
+    private void RequestFileSizePacket(FileProcess process)
+    {
+        _packetSender.SendData(PacketType.FileSize, process.Key, 0, new byte[0]);
     }
 
     private void CreateFileWithDirectory(string fileName)
@@ -168,9 +143,10 @@ public class LocalShareClient : IDisposable
 
     public void Dispose()
     {
-        if(writer != null) {
-            writer.Close();
-        }   
+        foreach(var process in fileProcesses)
+        {
+            fileProcesses[process.Key].Writer.Close();
+        }
     }
 
 }

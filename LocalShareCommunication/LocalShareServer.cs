@@ -29,7 +29,7 @@ public class LocalShareServer
     public void Start()
     {
         _packetListener.StartListener();
-        SendFile("Heartbeat_Connection.mp4");
+        SendFile("movie.mp4");
     }
 
     private void HandleRequest(Packet packet)
@@ -40,30 +40,63 @@ public class LocalShareServer
             return;
         }
 
-        SendFilePacket(packet.Key, keyFiles[packet.Key], packet.Identifier);
+        if(PacketType.FileName.Equals(packet.Type))
+        {
+            SendFileNamePacket(packet.Key);
+        } else if(PacketType.FileSize.Equals(packet.Type))
+        {
+            SendFileSizePacket(packet.Key);
+        } else if(PacketType.Byte.Equals(packet.Type))
+        {
+            SendFilePacket(packet.Key, keyFiles[packet.Key], packet.Identifier);
+        }
+
     }
     
     public void SendFile(string path)
     {
         new Thread(() =>
         {
-            FileInfo fileInfo = new FileInfo(path);
-            if (!fileInfo.Exists)
-            {
-                throw new FileNotFoundException(path);
-            }
+            CheckFileSize(path);
             string key = KeyGenerator.GenerateKey();
-            long fileSize = fileInfo.Length;
-            if (fileSize / Shared.MaxDataSize + 1 >= Math.Pow(10, Shared.PacketIdentifierLength))
-            {
-                Console.WriteLine("Overall file size is too big. Consider changing MaxDataSize.");
-                return;
-            }
             keyFiles[key] = path;
-            SendData(PacketType.FileName, key, 0, EncodingManager.GetBytes(fileInfo.Name));
-            SendData(PacketType.FileSize, key, 0, EncodingManager.GetBytes(fileSize + ""));
-            SendFilePacket(key, path, 0);
+            SendFileNamePacket(key);
         }).Start();
+    }
+
+    private void CheckFileSize(string path)
+    {
+        FileInfo fileInfo = new FileInfo(path);
+        if (!fileInfo.Exists)
+        {
+            throw new FileNotFoundException(path);
+        }
+        long fileSize = fileInfo.Length;
+        if (fileSize / Shared.MaxDataSize + 1 >= Math.Pow(10, Shared.PacketIdentifierLength))
+        {
+            Console.WriteLine("Overall file size is too big. Consider changing MaxDataSize.");
+            return;
+        }
+    }
+
+    private void SendFileNamePacket(string key)
+    {
+        FileInfo fileInfo = new FileInfo(keyFiles[key]);
+        if (!fileInfo.Exists)
+        {
+            throw new FileNotFoundException(keyFiles[key]);
+        }
+        SendData(PacketType.FileName, key, 0, EncodingManager.GetBytes(fileInfo.Name));
+    }
+
+    private void SendFileSizePacket(string key)
+    {
+        FileInfo fileInfo = new FileInfo(keyFiles[key]);
+        if (!fileInfo.Exists)
+        {
+            throw new FileNotFoundException(keyFiles[key]);
+        }
+        SendData(PacketType.FileSize, key, 0, EncodingManager.GetBytes(fileInfo.Length + ""));
     }
 
     private void SendFilePacket(string key, string path, long identifier)
@@ -72,9 +105,9 @@ public class LocalShareServer
         using (FileStream stream = File.OpenRead(path))
         {
             long bufferSize = Shared.MaxDataSize;
-            if(identifier * Shared.MaxDataSize > fileSize)
+            if((identifier + 1) * Shared.MaxDataSize > fileSize)
             {
-                bufferSize = identifier * Shared.MaxDataSize - fileSize;
+                bufferSize = fileSize - identifier * Shared.MaxDataSize;
             }
             byte[] buffer = new byte[bufferSize];
             stream.Seek(identifier * Shared.MaxDataSize, SeekOrigin.Begin);

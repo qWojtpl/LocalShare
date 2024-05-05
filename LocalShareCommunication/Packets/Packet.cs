@@ -64,9 +64,9 @@ public class Packet
 
     private void InitPacketType(byte[] responseData)
     {
-        if (responseData[0] < 4)
+        if (responseData[0] < 3)
         {
-            _type = (PacketType)responseData[0];
+            _type = (PacketType) responseData[0];
         }
         else
         {
