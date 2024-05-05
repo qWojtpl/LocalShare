@@ -295,11 +295,28 @@
     align-items: center;
 }
 
+    #slide-page .options span {
+        color: var(--font-second-color);
+        font-weight: 600;
+        font-size: 140%;
+        text-align: center;
+    }
+
     #slide-page .option-label {
         font-weight: 600;
         font-size: 200%;
         color: var(--font-second-color);
         width: 40vw;
+    }
+
+    #slide-page .option-warning {
+        color: var(--error-color);
+        font-size: 120%;
+        text-align: end;
+        margin-top: -4vw;
+        margin-bottom: -4vw;
+        margin-right: 2vw;
+        font-weight: 600;
     }
 
     #slide-page .option-label-checkbox {
