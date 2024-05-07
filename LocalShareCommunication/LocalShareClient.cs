@@ -12,14 +12,16 @@ public class LocalShareClient : IDisposable
     private readonly PacketListener _packetListener;
     private readonly PacketSender _packetSender;
     public int Port { get; }
+    public int CallbackPort { get; }
 
     private Dictionary<string, FileProcess> fileProcesses = new();
 
-    public LocalShareClient(int port = 2780)
+    public LocalShareClient(int port = 2780, int callbackPort = 2781)
     {
         Port = port;
+        CallbackPort = callbackPort;
         _packetListener = new PacketListener(port, HandlePacket);
-        _packetSender = new PacketSender(port + 1);
+        _packetSender = new PacketSender(callbackPort);
     }
 
     public void Start()
@@ -58,15 +60,49 @@ public class LocalShareClient : IDisposable
 
     }
 
+    public List<FileProcess> GetProcessesToAccept()
+    {
+        return fileProcesses.Values.Where(n => !n.Accepted).ToList();
+    }
+
+    public void Accept(string key)
+    {
+        if (!fileProcesses.ContainsKey(key))
+        {
+            return;
+        }
+        Accept(fileProcesses[key]);
+    }
+
+    public void Accept(FileProcess process)
+    {
+        if (process.Accepted)
+        {
+            return;
+        }
+        process.Accepted = true;
+        RequestFileSizePacket(process);
+    }
+
     private void HandleFileNamePacket(FileProcess process, Packet packet)
     {
         process.FileName = EncodingManager.GetText(packet.Data); 
         CreateDirectory();
-        RequestFileSizePacket(process);
+        /*
+         *
+         * ONLY FOR DEV BUILD
+         * AUTO-ACCEPTING FILES NEED TO BE REMOVED ON RELEASE!
+         * 
+        */
+        Accept(process);
     }
 
     private void HandleFileSizePacket(FileProcess process, Packet packet)
     {
+        if (!process.Accepted)
+        {
+            return;
+        }
         process.FileSize = int.Parse(EncodingManager.GetText(packet.Data));
         if (!process.Running)
         {
@@ -93,6 +129,10 @@ public class LocalShareClient : IDisposable
 
     private void StartMonitoring(FileProcess process)
     {
+        if (!fileProcesses.ContainsKey(process.Key))
+        {
+            return;
+        }
         Console.Clear();
         Console.WriteLine("Total chunks: " + process.Chunks.Count);
         foreach (Chunk chunk in process.Chunks)
@@ -114,7 +154,7 @@ public class LocalShareClient : IDisposable
 
     private void HandleBytePacket(FileProcess process, Packet packet)
     {
-        if (process.FileName == null || process.FileSize == -1)
+        if (process.FileName == null || process.FileSize == -1 || !process.Accepted)
         {
             return;
         }

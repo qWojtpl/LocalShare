@@ -7,6 +7,7 @@ namespace LocalShareCommunication.Client;
 public class FileProcess
 {
 
+    public bool Accepted { get; set; }
     public string Key { get; }
     public bool Running { get; set; }
     public FileStream? Writer { get; set; }
@@ -36,9 +37,9 @@ public class FileProcess
     private void CreateChunks()
     {
         /* todo: better calculation */
-        ChunkSize = (int) Math.Ceiling((decimal) FileSize / Shared.MaxDataSize / 10);
+        ChunkSize = (int) Math.Ceiling((decimal) FileSize / Shared.MaxDataSize / Shared.GoalChunkCount);
         chunksPath = CreateChunksPath();
-        TotalChunks = (int) Math.Ceiling((decimal) _fileSize / (Shared.MaxDataSize * ChunkSize));
+        TotalChunks = Shared.GoalChunkCount;
         for(int i = 0; i < TotalChunks; i++)
         {
             Chunks.Add(new Chunk(i, this, chunksPath));

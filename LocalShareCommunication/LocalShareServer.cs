@@ -9,13 +9,15 @@ public class LocalShareServer
     private readonly PacketSender _packetSender;
     private readonly PacketListener _packetListener;
     public int Port { get; }
+    public int CallbackPort { get; }
     private Dictionary<string, string> keyFiles = new();
 
-    public LocalShareServer(int port = 2780)
+    public LocalShareServer(int port = 2780, int callbackPort = 2781)
     {
         Port = port;
+        CallbackPort = callbackPort;
         _packetSender = new PacketSender(port);
-        _packetListener = new PacketListener(port + 1, HandleRequest);
+        _packetListener = new PacketListener(callbackPort, HandleRequest);
     }
 
     public void Start()
@@ -94,13 +96,18 @@ public class LocalShareServer
     private void SendFilePacket(string key, string path, long identifier)
     {
         long fileSize = new FileInfo(path).Length;
+        long bufferSize = Shared.MaxDataSize;
+        if ((identifier + 1) * Shared.MaxDataSize > fileSize)
+        {
+            bufferSize = fileSize - identifier * Shared.MaxDataSize;
+        }
+        if (bufferSize <= 0)
+        {
+            return;
+        }
+        //todo: make stream not open and close, just one open and close at the end (if last packet was sent a long time ago)
         using (FileStream stream = File.OpenRead(path))
         {
-            long bufferSize = Shared.MaxDataSize;
-            if((identifier + 1) * Shared.MaxDataSize > fileSize)
-            {
-                bufferSize = fileSize - identifier * Shared.MaxDataSize;
-            }
             byte[] buffer = new byte[bufferSize];
             stream.Seek(identifier * Shared.MaxDataSize, SeekOrigin.Begin);
             stream.Read(buffer, 0, buffer.Length);

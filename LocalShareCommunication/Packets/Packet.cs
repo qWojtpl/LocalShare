@@ -15,9 +15,16 @@ public class Packet
     public byte[] Data { get => _data; }
     private byte[] _data;
 
-
     public Packet(byte[] responseData)
     {
+        if (responseData.Length < Shared.HeaderLength)
+        {
+            throw new Exception("Packet too small.");
+        }
+        if (responseData.Length > Shared.PacketLength)
+        {
+            throw new Exception("Packet too large.");
+        }
         InitPacketType(responseData);
         InitKey(responseData);
         InitIdentifier(responseData);

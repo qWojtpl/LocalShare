@@ -28,12 +28,13 @@ public class PacketListener : IDisposable
                 IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, Port);
                 byte[] responseData = _listener.Receive(ref remoteEP);
 
-                if (responseData.Length < Shared.HeaderLength)
+                try
+                {
+                    new Thread(() => _handler.Invoke(new Packet(responseData))).Start();
+                } catch(Exception)
                 {
                     continue;
                 }
-
-                new Thread(() => _handler.Invoke(new Packet(responseData))).Start();
             }
         }).Start();
     }
