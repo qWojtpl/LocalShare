@@ -2,7 +2,6 @@
 using LocalShareCommunication.Packets;
 using LocalShareCommunication.Misc;
 using LocalShareCommunication.Client;
-using System.Diagnostics;
 
 namespace LocalShareCommunication;
 
@@ -13,7 +12,6 @@ public class LocalShareClient : IDisposable
     private readonly PacketSender _packetSender;
     public int Port { get; }
     public int CallbackPort { get; }
-
     private Dictionary<string, FileProcess> fileProcesses = new();
 
     public LocalShareClient(int port = 2780, int callbackPort = 2781)
@@ -113,7 +111,7 @@ public class LocalShareClient : IDisposable
     private void RunChunks(FileProcess process)
     {
         process.Running = true;
-        for (int i = 0; i < process.TotalChunks; i++)
+        for (int i = 0; i < Shared.GoalChunkCount; i++)
         {
             int tmp = i;
             new Thread(() => RunChunk(process, tmp)).Start();
@@ -149,6 +147,8 @@ public class LocalShareClient : IDisposable
     {
         if (chunk.LastPacket * Shared.MaxDataSize > process.FileSize || chunk.LastPacket == chunk.Max)
         {
+            Console.WriteLine("chunk " + chunk.Id + " end working: ");
+            Console.WriteLine(chunk.LastPacket * Shared.MaxDataSize > process.FileSize);
             return;
         }
         RequestPacket(chunk, chunk.LastPacket);

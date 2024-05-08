@@ -12,7 +12,6 @@ public class FileProcess
     public bool Running { get; set; }
     public FileStream? Writer { get; set; }
     public string? FileName { get; set; }
-    public string? TempFileName { get; set; }
     public int FileSize 
     { 
         get => _fileSize;
@@ -26,8 +25,7 @@ public class FileProcess
     public long LastIdentifier { get; set; } = -1;
     public List<Chunk> Chunks { get; } = new List<Chunk>();
     public int ChunkSize { get; private set; }
-    public int TotalChunks { get; private set; }
-    private string chunksPath;
+    private string? chunksPath;
 
     public FileProcess(string key)
     {
@@ -39,8 +37,7 @@ public class FileProcess
         /* todo: better calculation */
         ChunkSize = (int) Math.Ceiling((decimal) FileSize / Shared.MaxDataSize / Shared.GoalChunkCount);
         chunksPath = CreateChunksPath();
-        TotalChunks = Shared.GoalChunkCount;
-        for(int i = 0; i < TotalChunks; i++)
+        for(int i = 0; i < Shared.GoalChunkCount; i++)
         {
             Chunks.Add(new Chunk(i, this, chunksPath));
         }
@@ -73,6 +70,10 @@ public class FileProcess
 
     public void MergeChunks()
     {
+        if (chunksPath == null)
+        {
+            throw new Exception("Chunks path is null!");
+        }
         Console.WriteLine("Merging chunks...");
         if (File.Exists("./files/" + FileName))
         {

@@ -24,7 +24,6 @@ public class LocalShareServer
     public void Start()
     {
         _packetListener.StartListener();
-        SendFile("Heartbeat_Connection.mp4");
     }
 
     private void HandleRequest(Packet packet)

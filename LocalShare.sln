@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalShareCommunication", "LocalShareCommunication\LocalShareCommunication.csproj", "{32DD04F3-5A80-492B-81BD-E0A96ADFDB24}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalShareApplication", "LocalShareApplication\LocalShareApplication.csproj", "{F0BD3D1E-9FE2-4C66-8193-02BD0E4EF88A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{32DD04F3-5A80-492B-81BD-E0A96ADFDB24} = {32DD04F3-5A80-492B-81BD-E0A96ADFDB24}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorAnimate", "..\BlazorAnimate\BlazorAnimate.csproj", "{83ECDE83-84FF-453C-95FD-633C0F8E7303}"
 EndProject
