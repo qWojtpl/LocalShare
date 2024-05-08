@@ -1,7 +1,4 @@
 ﻿
-using System.Diagnostics;
-using System.IO;
-
 namespace LocalShareCommunication.Client;
 
 public class FileProcess
@@ -34,7 +31,6 @@ public class FileProcess
 
     private void CreateChunks()
     {
-        /* todo: better calculation */
         ChunkSize = (int) Math.Ceiling((decimal) FileSize / Shared.MaxDataSize / Shared.GoalChunkCount);
         chunksPath = CreateChunksPath();
         for(int i = 0; i < Shared.GoalChunkCount; i++)
@@ -57,7 +53,7 @@ public class FileProcess
         Directory.CreateDirectory(chunkDirectory);
         return chunkDirectory;
     }
-
+    
     public void CloseChunkWriters()
     {
         Console.WriteLine("Closing chunk writers...");

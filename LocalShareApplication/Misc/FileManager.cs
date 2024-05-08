@@ -19,7 +19,6 @@ public static class FileManager
 
             Shared.FilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LocalShare/files") + "/";
 
-            CommunicationManager.Client.GetHashCode();
             foreach(FileResult fileResult in results)
             {
                 CommunicationManager.Server.SendFile(fileResult.FullPath);

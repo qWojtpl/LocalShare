@@ -1,5 +1,4 @@
 ﻿using LocalShareCommunication.Misc;
-using System.Text;
 
 namespace LocalShareCommunication.Packets;
 

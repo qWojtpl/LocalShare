@@ -3,7 +3,7 @@ namespace LocalShareCommunication.Client;
 
 public class Chunk
 {
-
+    
     public int Id { get; }
     public FileProcess Process { get; }
     public FileStream Writer { get; set; } 
