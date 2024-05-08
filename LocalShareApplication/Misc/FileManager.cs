@@ -1,7 +1,8 @@
 ﻿
-using Microsoft.Extensions.Logging;
+using LocalShareApplication.Misc;
+using LocalShareCommunication;
 
-namespace LocalShareApplication.Misc;
+namespace LocalShareApplication;
 
 public static class FileManager
 {
@@ -15,6 +16,10 @@ public static class FileManager
             {
                 return;
             }
+
+            Shared.FilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LocalShare/files") + "/";
+
+            CommunicationManager.Client.GetHashCode();
             foreach(FileResult fileResult in results)
             {
                 CommunicationManager.Server.SendFile(fileResult.FullPath);

@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using LocalShareApplication.Misc;
+using Microsoft.Extensions.Logging;
+using Microsoft.Maui.LifecycleEvents;
 
 namespace LocalShareApplication
 {
@@ -12,6 +14,22 @@ namespace LocalShareApplication
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                })
+                .ConfigureLifecycleEvents(events =>
+                {
+#if WINDOWS
+                    events.AddWindows(windows => windows
+                           .OnClosed((window, args) => StopCommunication()));
+#endif
+#if ANDROID
+                    events.AddAndroid(windows => windows
+                           .OnStop((activity) => StopCommunication()));
+#endif
+                    static bool StopCommunication()
+                    {
+                        CommunicationManager.StopAll();
+                        return true;
+                    }
                 });
 
             builder.Services.AddMauiBlazorWebView();

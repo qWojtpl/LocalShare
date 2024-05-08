@@ -36,5 +36,17 @@ public static class CommunicationManager
 
     private static LocalShareServer? _server;
 
+    public static void StopAll()
+    {
+        if (_server != null) 
+        { 
+            _server.Stop();
+        }
+        if (_client != null)
+        {
+            _client.Stop();
+        }
+    }
+
 
 }

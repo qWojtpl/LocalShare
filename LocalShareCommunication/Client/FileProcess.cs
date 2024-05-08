@@ -49,7 +49,7 @@ public class FileProcess
         {
             throw new Exception("File name is null!");
         }
-        string chunkDirectory = "./files/chunks_" + FileName;
+        string chunkDirectory = Shared.FilesPath + "chunks_" + FileName;
         if (Directory.Exists(chunkDirectory))
         {
             Directory.Delete(chunkDirectory, true);
@@ -75,13 +75,13 @@ public class FileProcess
             throw new Exception("Chunks path is null!");
         }
         Console.WriteLine("Merging chunks...");
-        if (File.Exists("./files/" + FileName))
+        if (File.Exists(Shared.FilesPath + FileName))
         {
             FileName = "_" + FileName;
             MergeChunks();
             return;
         }
-        Writer = File.OpenWrite("./files/" + FileName);
+        Writer = File.OpenWrite(Shared.FilesPath + FileName);
         foreach(Chunk chunk in Chunks)
         {
             Console.WriteLine("Merging chunk " + chunk.Id);

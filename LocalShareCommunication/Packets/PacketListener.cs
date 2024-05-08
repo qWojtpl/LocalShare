@@ -10,6 +10,7 @@ public class PacketListener : IDisposable
     private UdpClient _listener;
     public int Port { get; }
     private Action<Packet> _handler;
+    private bool stopped = false;
 
 
     public PacketListener(int port, Action<Packet> handler)
@@ -21,15 +22,18 @@ public class PacketListener : IDisposable
 
     public void StartListener()
     {
+        if (stopped)
+        {
+            throw new Exception("You can't start the same PacketListener object after stopping it.");
+        }
         new Thread(() =>
         {
             while (!_disposed)
             {
                 IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, Port);
-                byte[] responseData = _listener.Receive(ref remoteEP);
-
                 try
                 {
+                    byte[] responseData = _listener.Receive(ref remoteEP);
                     new Thread(() => _handler.Invoke(new Packet(responseData))).Start();
                 } catch(Exception)
                 {
@@ -39,9 +43,16 @@ public class PacketListener : IDisposable
         }).Start();
     }
 
+    public void StopListener()
+    {
+        Dispose();
+        stopped = true;
+    }
+
     public void Dispose()
     {
         _disposed = true;
         _listener.Close();
     }
+
 }

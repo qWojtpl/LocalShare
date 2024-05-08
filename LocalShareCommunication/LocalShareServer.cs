@@ -26,6 +26,11 @@ public class LocalShareServer
         _packetListener.StartListener();
     }
 
+    public void Stop()
+    {
+        _packetListener.StopListener();
+    }
+
     private void HandleRequest(Packet packet)
     {
         if (!keyFiles.ContainsKey(packet.Key))
@@ -57,6 +62,17 @@ public class LocalShareServer
             FileSendProcess process = new FileSendProcess(key, path);
             keyFiles[key] = process;
             SendFileNamePacket(process);
+            while(true)
+            {
+                Thread.Sleep(1000);
+                if(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - process.LastRequest > 5)
+                {
+                    process.Reader.Close();
+                    Console.WriteLine(path + " is not used anymore!");
+                    keyFiles.Remove(key);
+                    return;
+                }
+            }
         }).Start();
     }
 

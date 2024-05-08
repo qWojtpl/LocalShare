@@ -27,6 +27,11 @@ public class LocalShareClient : IDisposable
         _packetListener.StartListener();
     }
 
+    public void Stop()
+    {
+        _packetListener.StopListener();
+    }
+
     private void HandlePacket(Packet packet)
     {
         string key = packet.Key;
@@ -137,8 +142,6 @@ public class LocalShareClient : IDisposable
         {
             Console.WriteLine("Chunk " + chunk.Id + ": " + ((double) (chunk.LastPacket - chunk.Min) / (chunk.Max - chunk.Min)) * 100 + "%" + " (" + (chunk.LastPacket - chunk.Min) + "/" + (chunk.Max - chunk.Min) + ")");
         }
-        Console.WriteLine(process.ActualSize + "/" + process.FileSize);
-        Console.WriteLine(((double) process.ActualSize / process.FileSize) * 100 + "%");
         Thread.Sleep(2000);
         StartMonitoring(process);
     }
@@ -147,8 +150,6 @@ public class LocalShareClient : IDisposable
     {
         if (chunk.LastPacket * Shared.MaxDataSize > process.FileSize || chunk.LastPacket == chunk.Max)
         {
-            Console.WriteLine("chunk " + chunk.Id + " end working: ");
-            Console.WriteLine(chunk.LastPacket * Shared.MaxDataSize > process.FileSize);
             return;
         }
         RequestPacket(chunk, chunk.LastPacket);
@@ -168,7 +169,11 @@ public class LocalShareClient : IDisposable
         }
         process.ActualSize += packet.Data.Length;
 
-        chunk.Writer.Write(packet.Data, 0, packet.Data.Length);
+        if(chunk.Writer.CanWrite)
+        {
+            chunk.Writer.Write(packet.Data, 0, packet.Data.Length);
+        }
+
         if (process.ActualSize >= process.FileSize)
         {
             process.CloseChunkWriters();
@@ -209,11 +214,11 @@ public class LocalShareClient : IDisposable
 
     private void CreateDirectory()
     {
-        if(Directory.Exists("./files/"))
+        if(Directory.Exists(Shared.FilesPath))
         {
             return;
         }
-        Directory.CreateDirectory("./files/");
+        Directory.CreateDirectory(Shared.FilesPath);
     }
 
     public void Dispose()
