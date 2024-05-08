@@ -118,7 +118,7 @@ public class LocalShareClient : IDisposable
             int tmp = i;
             new Thread(() => RunChunk(process, tmp)).Start();
         }
-        new Thread(() => StartMonitoring(process)).Start();
+       // new Thread(() => StartMonitoring(process)).Start();
     }
 
     private void RunChunk(FileProcess process, int chunkIdentifier)
@@ -139,13 +139,15 @@ public class LocalShareClient : IDisposable
         {
             Console.WriteLine("Chunk " + chunk.Id + ": " + ((double) (chunk.LastPacket - chunk.Min) / (chunk.Max - chunk.Min)) * 100 + "%" + " (" + (chunk.LastPacket - chunk.Min) + "/" + (chunk.Max - chunk.Min) + ")");
         }
+        Console.WriteLine(process.ActualSize + "/" + process.FileSize);
+        Console.WriteLine(((double) process.ActualSize / process.FileSize) * 100 + "%");
         Thread.Sleep(2000);
         StartMonitoring(process);
     }
 
     private void NextChunkRequest(FileProcess process, Chunk chunk)
     {
-        if(process.FileSize / Shared.MaxDataSize < chunk.LastPacket || chunk.LastPacket == chunk.Max)
+        if (chunk.LastPacket * Shared.MaxDataSize > process.FileSize || chunk.LastPacket == chunk.Max)
         {
             return;
         }
@@ -185,7 +187,7 @@ public class LocalShareClient : IDisposable
         {
             return;
         }
-        //Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
+        Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
         _packetSender.SendData(PacketType.Byte, chunk.Process.Key, identifier, new byte[0]);
         new Thread(() => CheckTimeout(chunk, identifier, sleepTime)).Start();
     }
@@ -195,7 +197,7 @@ public class LocalShareClient : IDisposable
         Thread.Sleep(sleepTime);
         if (chunk.LastPacket <= identifier && chunk.LastPacket != chunk.Max)
         {
-            //Console.WriteLine("Request timed out.");
+            Console.WriteLine("Request timed out.");
             RequestPacket(chunk, identifier, sleepTime + 100);
         }
     }

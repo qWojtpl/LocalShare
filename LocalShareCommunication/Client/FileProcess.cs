@@ -63,8 +63,10 @@ public class FileProcess
 
     public void CloseChunkWriters()
     {
-        foreach(Chunk chunk in Chunks)
+        Console.WriteLine("Closing chunk writers...");
+        foreach (Chunk chunk in Chunks)
         {
+            Console.WriteLine("Closing writer " + chunk.Id);
             chunk.Writer.Close();
         }
     }
