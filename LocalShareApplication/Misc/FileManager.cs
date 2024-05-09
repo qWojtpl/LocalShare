@@ -7,6 +7,10 @@ namespace LocalShareApplication;
 public static class FileManager
 {
 
+    private static LocalShareClient _client = CommunicationManager.Client;
+    private static LocalShareServer _server = CommunicationManager.Server;
+
+
     public static void OpenFilePicker()
     {
         Task.Run(async () =>
@@ -21,7 +25,7 @@ public static class FileManager
 
             foreach(FileResult fileResult in results)
             {
-                CommunicationManager.Server.SendFile(fileResult.FullPath);
+                _server.SendFile(fileResult.FullPath);
             }
         });
     }

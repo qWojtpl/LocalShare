@@ -39,7 +39,7 @@ namespace LocalShareApplication
     		builder.Logging.AddDebug();
 #endif
 
-            CommunicationManager.Client.GetHashCode(); // Starts client
+            var client = CommunicationManager.Client; // Start the client
 
             return builder.Build();
         }

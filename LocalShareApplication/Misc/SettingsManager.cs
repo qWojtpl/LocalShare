@@ -37,6 +37,18 @@ public static class SettingsManager
         }
     }
 
+    public static bool ListenForNewFiles
+    {
+        get
+        {
+            return GetSetting("listenForNewFiles", Default.ListenForNewFiles);
+        }
+        set
+        {
+            SetSetting("listenForNewFiles", value);
+        }
+    }
+
     public class Default
     {
         public static int Port
@@ -53,6 +65,12 @@ public static class SettingsManager
         {
             get => "en";
         }
+
+        public static bool ListenForNewFiles
+        {
+            get => true;
+        }
+
     }
 
     private static int GetSetting(string key, int defaultValue)

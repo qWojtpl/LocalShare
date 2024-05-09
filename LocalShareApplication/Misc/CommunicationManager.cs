@@ -10,7 +10,7 @@ public static class CommunicationManager
     {
         get 
         {
-            if (_client == null)
+            if (_client == null && SettingsManager.ListenForNewFiles)
             {
                 _client = new LocalShareClient(SettingsManager.Port, SettingsManager.CallbackPort);
                 _client.Start();
@@ -38,13 +38,23 @@ public static class CommunicationManager
 
     public static void StopAll()
     {
-        if (_server != null) 
-        { 
-            _server.Stop();
-        }
+        StopServer();
+        StopClient();
+    }
+
+    public static void StopClient()
+    {
         if (_client != null)
         {
             _client.Stop();
+        }
+    }
+
+    public static void StopServer()
+    {
+        if (_server != null)
+        {
+            _server.Stop();
         }
     }
 

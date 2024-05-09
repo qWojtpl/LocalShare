@@ -5,6 +5,7 @@
     int port = SettingsManager.Port;
     int callbackPort = SettingsManager.CallbackPort;
     string samePortWarning = "none";
+    bool listenForNewFilesChecked = SettingsManager.ListenForNewFiles;
 
     private void SetPort(string port)
     {
@@ -40,6 +41,24 @@
         {
             samePortWarning = "block";
             throw new Exception();
+        }
+    }
+
+    private void SwitchListenForNewFiles()
+    {
+        bool listenForNewFiles = SettingsManager.ListenForNewFiles;
+        if (listenForNewFiles)
+        {
+            listenForNewFiles = false;
+            CommunicationManager.StopClient();
+        } else
+        {
+            listenForNewFiles = true;
+        }
+        SettingsManager.ListenForNewFiles = listenForNewFiles;
+        if (listenForNewFiles)
+        {
+            var _client = CommunicationManager.Client; // Start client
         }
     }
 
@@ -80,7 +99,13 @@
                     @LanguageManager.Get("listenForNewFiles")
                 </div>
                 <div class="option-input option-input-checkbox">
-                    <input type="checkbox" />
+                    @if(listenForNewFilesChecked)
+                    {
+                        <input type="checkbox" @onclick="SwitchListenForNewFiles" checked />
+                    } else
+                    {
+                        <input type="checkbox" @onclick="SwitchListenForNewFiles" />
+                    }
                 </div>
             </div>
             <button class="option-button">@LanguageManager.Get("clearFilesLog")</button>
