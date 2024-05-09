@@ -81,8 +81,15 @@ public class FileProcess
         foreach(Chunk chunk in Chunks)
         {
             Console.WriteLine("Merging chunk " + chunk.Id);
-            byte[] bytes = File.ReadAllBytes(chunk.ChunkPath);
-            Writer.Write(bytes, 0, bytes.Length);
+            try
+            {
+                byte[] bytes = File.ReadAllBytes(chunk.ChunkPath);
+                Writer.Write(bytes, 0, bytes.Length);
+            }
+            catch (Exception)
+            {
+                continue;
+            }
         }
         Directory.Delete(chunksPath, true);
         Console.WriteLine("File transfer complete.");

@@ -1,4 +1,5 @@
-﻿using LocalShareCommunication.Misc;
+﻿using LocalShareCommunication.Events;
+using LocalShareCommunication.Misc;
 using LocalShareCommunication.Packets;
 using LocalShareCommunication.Server;
 
@@ -12,6 +13,7 @@ public class LocalShareServer
     public int Port { get; }
     public int CallbackPort { get; }
     private Dictionary<string, FileSendProcess> keyFiles = new();
+    private Events.EventHandler<FileSendProcess> _eventHandler;
 
     public LocalShareServer(int port = 2780, int callbackPort = 2781)
     {
@@ -19,6 +21,7 @@ public class LocalShareServer
         CallbackPort = callbackPort;
         _packetSender = new PacketSender(port);
         _packetListener = new PacketListener(callbackPort, HandleRequest);
+        _eventHandler = new Events.EventHandler<FileSendProcess>();
     }
 
     public void Start()
@@ -29,6 +32,16 @@ public class LocalShareServer
     public void Stop()
     {
         _packetListener.StopListener();
+    }
+
+    public void AddEventHandler(Action<EventType, FileSendProcess> action)
+    {
+        _eventHandler.AddEventHandler(action);
+    }
+
+    public List<FileSendProcess> GetFileSendProcesses()
+    {
+        return keyFiles.Values.ToList();
     }
 
     private void HandleRequest(Packet packet)
@@ -62,14 +75,16 @@ public class LocalShareServer
             FileSendProcess process = new FileSendProcess(key, path);
             keyFiles[key] = process;
             SendFileNamePacket(process);
-            while(true)
+            SendEvent(EventType.StartUploading, process);
+            while (true)
             {
                 Thread.Sleep(1000);
-                if(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - process.LastRequest > 5)
+                if(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - process.LastRequest > Shared.UploadTimeout)
                 {
                     process.Reader.Close();
                     Console.WriteLine(path + " is not used anymore!");
                     keyFiles.Remove(key);
+                    SendEvent(EventType.EndDownloading, process);
                     return;
                 }
             }
@@ -122,6 +137,11 @@ public class LocalShareServer
     private void SendData(PacketType packetType, string key, long identifier, byte[] data)
     {
         _packetSender.SendData(packetType, key, identifier, data);
+    }
+
+    private void SendEvent(EventType type, FileSendProcess process)
+    {
+        _eventHandler.SendEvent(type, process);
     }
 
 }

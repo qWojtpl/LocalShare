@@ -11,6 +11,7 @@ public class Shared
     public static int HeaderLength { get => KeyLength + PacketTypeLength + PacketIdentifierLength; }
     public static int PacketLength { get => HeaderLength + MaxDataSize; }
     public static int GoalChunkCount { get; } = 16;
+    public static int UploadTimeout { get; } = 30;
     public static string FilesPath { get; set; } = "./files/";
 
 }

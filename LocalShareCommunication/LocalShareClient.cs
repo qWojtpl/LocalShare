@@ -2,6 +2,7 @@
 using LocalShareCommunication.Packets;
 using LocalShareCommunication.Misc;
 using LocalShareCommunication.Client;
+using LocalShareCommunication.Events;
 
 namespace LocalShareCommunication;
 
@@ -13,6 +14,7 @@ public class LocalShareClient : IDisposable
     public int Port { get; }
     public int CallbackPort { get; }
     private Dictionary<string, FileProcess> fileProcesses = new();
+    private Events.EventHandler<FileProcess> _eventHandler;
 
     public LocalShareClient(int port = 2780, int callbackPort = 2781)
     {
@@ -20,6 +22,7 @@ public class LocalShareClient : IDisposable
         CallbackPort = callbackPort;
         _packetListener = new PacketListener(port, HandlePacket);
         _packetSender = new PacketSender(callbackPort);
+        _eventHandler = new Events.EventHandler<FileProcess>();
     }
 
     public void Start()
@@ -32,6 +35,11 @@ public class LocalShareClient : IDisposable
         _packetListener.StopListener();
     }
 
+    public void AddEventHandler(Action<EventType, FileProcess> action)
+    {
+        _eventHandler.AddEventHandler(action);
+    }
+
     private void HandlePacket(Packet packet)
     {
         string key = packet.Key;
@@ -42,6 +50,7 @@ public class LocalShareClient : IDisposable
         {
             process = new FileProcess(key);
             fileProcesses[key] = process;
+            SendEvent(EventType.StartDownloading, process);
         } else
         {
             process = fileProcesses[key];
@@ -85,6 +94,7 @@ public class LocalShareClient : IDisposable
         }
         process.Accepted = true;
         RequestFileSizePacket(process);
+        SendEvent(EventType.Accept, process);
     }
 
     private void HandleFileNamePacket(FileProcess process, Packet packet)
@@ -178,12 +188,12 @@ public class LocalShareClient : IDisposable
         {
             process.CloseChunkWriters();
             process.MergeChunks();
+            SendEvent(EventType.EndDownloading, process);
             fileProcesses.Remove(process.Key, out _);
         }
 
         chunk.LastPacket++;
         NextChunkRequest(process, chunk);
-
     }
 
     private void RequestPacket(Chunk chunk, long identifier, int sleepTime = 350)
@@ -219,6 +229,11 @@ public class LocalShareClient : IDisposable
             return;
         }
         Directory.CreateDirectory(Shared.FilesPath);
+    }
+
+    private void SendEvent(EventType type, FileProcess process)
+    {
+        _eventHandler.SendEvent(type, process);
     }
 
     public void Dispose()
