@@ -25,6 +25,18 @@ public static class SettingsManager
         }
     }
 
+    public static string Language
+    {
+        get
+        {
+            return GetSetting("language", Default.Language);
+        }
+        set
+        {
+            SetSetting("language", value);
+        }
+    }
+
     public class Default
     {
         public static int Port
@@ -36,6 +48,11 @@ public static class SettingsManager
         {
             get => 2781;
         }
+
+        public static string Language
+        {
+            get => "en";
+        }
     }
 
     private static int GetSetting(string key, int defaultValue)
@@ -44,6 +61,16 @@ public static class SettingsManager
     }
 
     private static void SetSetting(string key, int value)
+    {
+        Preferences.Default.Set(key, value);
+    }
+
+    private static string GetSetting(string key, string defaultValue)
+    {
+        return Preferences.Default.Get(key, defaultValue);
+    }
+
+    private static void SetSetting(string key, string value)
     {
         Preferences.Default.Set(key, value);
     }

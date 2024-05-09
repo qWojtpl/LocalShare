@@ -1,0 +1,21 @@
+{
+  "name": "Polski",
+  "welcome": "Witaj w aplikacji LocalShare",
+  "subwelcome": "Udostępniaj pliki przez swoją sieć",
+  "download": "Pobieranie",
+  "downloadDescription": "Zobacz listę pobierania",
+  "upload": "Wysyłanie",
+  "uploadDescription": "Wyślij nowe pliki",
+  "files": "Pliki",
+  "filesDescription": "Zobacz pobrane i wysłane pliki",
+  "settings": "Ustawienia",
+  "settingsDescription": "Zmień ustawienia aplikacji",
+  "noSendingFiles": "Obecnie nie wysyłasz żadnych plików.",
+  "noDownloadingFiles": "Obecnie nie pobierasz żadnych plików.",
+  "noFilesInHistory": "Nie znaleziono plików.",
+  "port": "Port",
+  "callbackPort": "Port zwrotny",
+  "samePortsWarning": "Porty nie mogą być takie same!",
+  "listenForNewFiles": "Szukaj nowych plików w sieci",
+  "clearFilesLog": "Wyczyść historię plików"
+}

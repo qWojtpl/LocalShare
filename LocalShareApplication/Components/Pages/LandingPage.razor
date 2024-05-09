@@ -10,12 +10,12 @@
 <div id="landing-page" class="page" style="@Loader.PageStyles["LandingPage"]">
 
     <div class="header">
-        <div class="language">
+        <div class="language" @onclick="LanguageManager.SwitchLanguage">
             <div class="language-image">
                 <img src="images/language.svg" />
             </div>
             <div class="language-text">
-                English
+                @LanguageManager.Get("name")
             </div>
         </div>
         <div class="welcome">
@@ -23,10 +23,10 @@
                 <img src="images/logo.svg" />
             </div>
             <span class="welcome-main-text">
-                Welcome to LocalShare
+                @LanguageManager.Get("welcome")
             </span>
             <span class="welcome-subtext">
-                Share files through your network
+                @LanguageManager.Get("subwelcome")
             </span>
         </div>
     </div>
@@ -37,10 +37,10 @@
                 <img src="images/download.svg" />
             </div>
             <span class="button-main-text">
-                Download
+                @LanguageManager.Get("download")
             </span>
             <span class="button-subtext">
-                View current download list
+                @LanguageManager.Get("downloadDescription")
             </span>
         </div>
         <div class="button" @onclick="(() => Loader.Load(upload))">
@@ -48,10 +48,10 @@
                 <img src="images/upload.svg" />
             </div>
             <span class="button-main-text">
-                Upload
+                @LanguageManager.Get("upload")
             </span>
             <span class="button-subtext">
-                Upload new files through network
+                @LanguageManager.Get("uploadDescription")
             </span>
         </div>
         <div class="button" @onclick="(() => Loader.Load(files))">
@@ -59,10 +59,10 @@
                 <img src="images/files.svg" />
             </div>
             <span class="button-main-text">
-                Files
+                @LanguageManager.Get("files")
             </span>
             <span class="button-subtext">
-                See all downloaded & uploaded files
+                @LanguageManager.Get("filesDescription")
             </span>
         </div>
         <div class="button" @onclick="(() => Loader.Load(settings))">
@@ -70,10 +70,10 @@
                 <img src="images/settings.svg" />
             </div>
             <span class="button-main-text">
-                Settings
+                @LanguageManager.Get("settings")
             </span>
             <span class="button-subtext">
-                Change application settings
+                @LanguageManager.Get("settingsDescription")
             </span>
         </div>
     </div>

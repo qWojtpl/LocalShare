@@ -1,19 +1,19 @@
-@page "/download"
+@page "/files"
 @inherits AppPage
 
-<div id="slide-page" class="page" style="@Loader.PageStyles["Download"]">
+<div id="slide-page" class="page" style="@Loader.PageStyles["Files"]">
 
     <div class="header">
         <div class="header-image" @onclick="@Loader.UnloadLatest">
             <img src="images/back-arrow.svg" />
         </div>
         <div class="header-text">
-            @LanguageManager.Get("download")
+            @LanguageManager.Get("files")
         </div>
     </div>
 
     <div class="empty-text">
-        <span>@LanguageManager.Get("noDownloadingFiles")</span>
+        <span>@LanguageManager.Get("noFilesInHistory")</span>
     </div>
 
     <div class="entries-container">

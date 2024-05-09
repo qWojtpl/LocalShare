@@ -1,0 +1,21 @@
+{
+  "name": "English",
+  "welcome": "Welcome to LocalShare",
+  "subwelcome": "Share files through your network",
+  "download": "Download",
+  "downloadDescription": "View current download list",
+  "upload": "Upload",
+  "uploadDescription": "Upload new files through network",
+  "files": "Files",
+  "filesDescription": "See all downloaded & uploaded files",
+  "settings": "Settings",
+  "settingsDescription": "Change application settings",
+  "noSendingFiles": "You actually aren’t sending any files.",
+  "noDownloadingFiles": "You actually aren’t downloading any files.",
+  "noFilesInHistory": "No files found.",
+  "port": "Port",
+  "callbackPort": "Callback port",
+  "samePortsWarning": "Ports cannot be the same!",
+  "listenForNewFiles": "Listen for new files",
+  "clearFilesLog": "Clear files log"
+}

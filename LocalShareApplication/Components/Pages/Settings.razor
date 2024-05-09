@@ -52,7 +52,7 @@
             <img src="images/back-arrow.svg" />
         </div>
         <div class="header-text">
-            Settings
+            @LanguageManager.Get("settings")
         </div>
     </div>
 
@@ -60,7 +60,7 @@
         <div class="options">
             <div class="option">
                 <div class="option-label">
-                    Port
+                    @LanguageManager.Get("port")
                 </div>
                 <div class="option-input">
                     <input type="number" value="@port" @oninput="(EventArgs) => { SetPort(EventArgs.Value.ToString()); }" />
@@ -68,31 +68,22 @@
             </div>
             <div class="option">
                 <div class="option-label">
-                    Callback port
+                    @LanguageManager.Get("callbackPort")
                 </div>
                 <div class="option-input">
                     <input type="number" value="@callbackPort" @oninput="(EventArgs) => { SetCallbackPort(EventArgs.Value.ToString()); }" />
                 </div>
             </div>
-            <sup class="option-warning" style="display: @samePortWarning">Ports cannot be the same!</sup>
+            <sup class="option-warning" style="display: @samePortWarning">@LanguageManager.Get("samePortsWarning")</sup>
             <div class="option">
                 <div class="option-label option-label-checkbox">
-                    Listen for new files
+                    @LanguageManager.Get("listenForNewFiles")
                 </div>
                 <div class="option-input option-input-checkbox">
                     <input type="checkbox" />
                 </div>
             </div>
-            <div class="option">
-                <div class="option-label option-label-checkbox">
-                    Work in background (mobile)
-                </div>
-                <div class="option-input option-input-checkbox">
-                    <input type="checkbox" />
-                </div>
-            </div>
-            <button class="option-button">Clear files log</button>
-            <span>Changes will be applied on device restart!</span>
+            <button class="option-button">@LanguageManager.Get("clearFilesLog")</button>
         </div>
     </div>
 

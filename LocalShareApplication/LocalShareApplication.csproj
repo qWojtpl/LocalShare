@@ -59,6 +59,11 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Remove="Resources\Raw\en.json" />
+      <Content Remove="resources\raw\pl.json" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
@@ -72,7 +77,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\BlazorAnimate\BlazorAnimate.csproj" />
-      <ProjectReference Include="..\LocalShareCommunication\LocalShareCommunication.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <MauiAsset Update="Resources\Raw\en.json">
+        <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+      </MauiAsset>
     </ItemGroup>
 
 </Project>
