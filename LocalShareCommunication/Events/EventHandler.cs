@@ -10,9 +10,15 @@ public class EventHandler<T>
 
     public void SendEvent(EventType type, T process)
     {
-        foreach (var action in events)
+        try
         {
-            action.Invoke(type, process);
+            foreach (var action in events)
+            {
+                action.Invoke(type, process);
+            }
+        } catch(Exception)
+        {
+            SendEvent(type, process);
         }
     }
 

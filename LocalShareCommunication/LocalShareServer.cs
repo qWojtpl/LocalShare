@@ -84,7 +84,7 @@ public class LocalShareServer
                     process.Reader.Close();
                     Console.WriteLine(path + " is not used anymore!");
                     keyFiles.Remove(key);
-                    SendEvent(EventType.EndDownloading, process);
+                    SendEvent(EventType.EndUploading, process);
                     return;
                 }
             }

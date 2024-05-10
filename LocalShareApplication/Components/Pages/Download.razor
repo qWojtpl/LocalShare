@@ -1,5 +1,43 @@
 @page "/download"
 @inherits AppPage
+@{
+
+    if (CommunicationManager.Client != null)
+    {
+        CommunicationManager.Client.AddEventHandler(HandleEvent);
+    }
+}
+
+@code {
+
+    List<FileProcess> processes = new();
+
+    private void HandleEvent(EventType type, FileProcess process)
+    {
+        if (EventType.StartDownloading.Equals(type))
+        {
+            if (processes.Contains(process))
+            {
+                return;
+            }
+            processes.Add(process);
+            new Thread(() =>
+            {
+                while (processes.Contains(process))
+                {
+                    Thread.Sleep(100);
+                    InvokeAsync(StateHasChanged);
+                }
+            }).Start();
+        }
+        else if (EventType.EndDownloading.Equals(type))
+        {
+            processes.Remove(process);
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+}
 
 <div id="slide-page" class="page" style="@Loader.PageStyles["Download"]">
 
@@ -12,38 +50,42 @@
         </div>
     </div>
 
-    <div class="empty-text">
-        <span>@LanguageManager.Get("noDownloadingFiles")</span>
-    </div>
-
-    <div class="entries-container">
-        <div class="entries">
-            @for(int i = 0; i < 100; i++)
-            {
-                <div class="entry">
-                    <div class="entry-image">
-                        <img src="images/file.svg" />
-                    </div>
-                    <div class="entry-middle">
-                        <div class="entry-name">
-                            test.mp4
+    @if (processes.Count() == 0)
+    {
+        <div class="empty-text">
+            <span>@LanguageManager.Get("noDownloadingFiles")</span>
+        </div>
+    } else
+    {
+        <div class="entries-container">
+            <div class="entries">
+                @foreach(FileProcess process in processes)
+                {
+                    <div class="entry">
+                        <div class="entry-image">
+                            <img src="images/file.svg" />
                         </div>
-                        <div class="progress-bar">
-                            <div class="progress-bar-percentage">
+                        <div class="entry-middle">
+                            <div class="entry-name">
+                                @process.FileName
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-bar-percentage">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="entry-end">
+                            <div class="entry-cancel">
+                                Cancel
+                            </div>
+                            <div class="entry-percentage">
+                                @((int) (((double) process.ActualSize / process.FileSize) * 100))%
                             </div>
                         </div>
                     </div>
-                    <div class="entry-end">
-                        <div class="entry-cancel">
-                            Cancel
-                        </div>
-                        <div class="entry-percentage">
-                            100%
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
+                }
+            </div>
+        </div>   
+    }
 
 </div>

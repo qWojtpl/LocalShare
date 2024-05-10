@@ -8,6 +8,6 @@ public enum EventType
     EndDownloading,
     StartUploading,
     EndUploading,
-    Accept
+    Accept,
 
 }

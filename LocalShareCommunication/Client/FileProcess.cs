@@ -61,6 +61,7 @@ public class FileProcess
         {
             Console.WriteLine("Closing writer " + chunk.Id);
             chunk.Writer.Close();
+            Thread.Sleep(1);
         }
     }
 

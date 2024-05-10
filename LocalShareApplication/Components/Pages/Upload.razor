@@ -1,5 +1,34 @@
 @page "/upload"
 @inherits AppPage
+@{
+
+    if (CommunicationManager.Server != null) 
+    {
+        CommunicationManager.Server.AddEventHandler(HandleEvent);
+    }
+}
+
+@code{
+
+    List<FileSendProcess> processes = new();
+
+    private void HandleEvent(EventType type, FileSendProcess process)
+    {
+        if (EventType.StartUploading.Equals(type))
+        {
+            if (processes.Contains(process))
+            {
+                return;
+            }
+            processes.Add(process);
+        } else if (EventType.EndUploading.Equals(type))
+        {
+            processes.Remove(process);
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+}
 
 <div id="slide-page" class="page" style="@Loader.PageStyles["Upload"]">
 
@@ -12,13 +41,16 @@
         </div>
     </div>
 
-    <div class="empty-text">
-        <span>@LanguageManager.Get("noSendingFiles")</span>
-    </div>
-
-    <div class="entries-container">
+    @if (processes.Count() == 0)
+    {
+        <div class="empty-text">
+            <span>@LanguageManager.Get("noSendingFiles")</span>
+        </div>
+    } else
+    {
+        <div class="entries-container">
         <div class="entries">
-            @for(int i = 0; i < 100; i++)
+            @foreach (FileSendProcess process in processes)
             {
                 <div class="entry">
                     <div class="entry-image">
@@ -26,7 +58,7 @@
                     </div>
                     <div class="entry-middle">
                         <div class="entry-name">
-                            test.mp4
+                            @process.FileName
                         </div>
                         <div class="progress-bar">
                             <div class="progress-bar-percentage">
@@ -45,6 +77,7 @@
             }
         </div>
     </div>
+    }
 
     <div class="upload-new" @onclick="FileManager.OpenFilePicker">
         <span>+</span>
