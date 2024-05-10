@@ -177,14 +177,19 @@ public class LocalShareClient : IDisposable
         {
             return;
         }
-        process.ActualSize += packet.Data.Length;
 
         if(chunk.Writer.CanWrite)
         {
+            process.ActualSize += packet.Data.Length;
             chunk.Writer.Write(packet.Data, 0, packet.Data.Length);
+            chunk.LastPacket++;
+            NextChunkRequest(process, chunk);
+        } else
+        {
+            NextChunkRequest(process, chunk);
         }
 
-        if (process.ActualSize >= process.FileSize)
+        if (process.ActualSize >= process.FileSize && !process.Closed)
         {
             process.CloseChunkWriters();
             process.MergeChunks();
@@ -192,8 +197,6 @@ public class LocalShareClient : IDisposable
             fileProcesses.Remove(process.Key, out _);
         }
 
-        chunk.LastPacket++;
-        NextChunkRequest(process, chunk);
     }
 
     private void RequestPacket(Chunk chunk, long identifier, int sleepTime = 350)

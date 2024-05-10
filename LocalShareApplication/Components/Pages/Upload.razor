@@ -1,16 +1,17 @@
 @page "/upload"
 @inherits AppPage
-@{
-
-    if (CommunicationManager.Server != null) 
-    {
-        CommunicationManager.Server.AddEventHandler(HandleEvent);
-    }
-}
 
 @code{
 
     List<FileSendProcess> processes = new();
+
+    public Upload()
+    {
+        if (CommunicationManager.Server != null)
+        {
+            CommunicationManager.Server.AddEventHandler(HandleEvent);
+        }
+    }
 
     private void HandleEvent(EventType type, FileSendProcess process)
     {

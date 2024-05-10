@@ -7,7 +7,7 @@ namespace LocalShareCommunication;
 
 public class LocalShareServer
 {
-
+    
     private readonly PacketSender _packetSender;
     private readonly PacketListener _packetListener;
     public int Port { get; }

@@ -246,6 +246,7 @@
         width: 90%;
         height: 100%;
         background: var(--progress-bar-fill);
+        transition: 1s;
     }
 
     #slide-page .entry-end {

@@ -1,16 +1,17 @@
 @page "/download"
 @inherits AppPage
-@{
-
-    if (CommunicationManager.Client != null)
-    {
-        CommunicationManager.Client.AddEventHandler(HandleEvent);
-    }
-}
 
 @code {
 
     List<FileProcess> processes = new();
+
+    public Download()
+    {
+        if (CommunicationManager.Client != null)
+        {
+            CommunicationManager.Client.AddEventHandler(HandleEvent);
+        }
+    }
 
     private void HandleEvent(EventType type, FileProcess process)
     {
@@ -70,7 +71,7 @@
                                 @process.FileName
                             </div>
                             <div class="progress-bar">
-                                <div class="progress-bar-percentage">
+                                <div class="progress-bar-percentage" style="width:@((int) (((double) process.ActualSize / process.FileSize) * 100))%">
                                 </div>
                             </div>
                         </div>

@@ -5,6 +5,7 @@ public class FileProcess
 {
 
     public bool Accepted { get; set; }
+    public bool Closed { get; set; }
     public string Key { get; }
     public bool Running { get; set; }
     public FileStream? Writer { get; set; }
@@ -56,6 +57,7 @@ public class FileProcess
     
     public void CloseChunkWriters()
     {
+        Closed = true;
         Console.WriteLine("Closing chunk writers...");
         foreach (Chunk chunk in Chunks)
         {
