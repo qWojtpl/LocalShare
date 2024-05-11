@@ -26,6 +26,7 @@ public static class FileManager
             foreach(FileResult fileResult in results)
             {
                 _server.SendFile(fileResult.FullPath);
+                Thread.Sleep(500);
             }
         });
     }

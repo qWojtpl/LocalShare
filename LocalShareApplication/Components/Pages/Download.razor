@@ -60,7 +60,7 @@
     {
         <div class="entries-container">
             <div class="entries">
-                @foreach(FileProcess process in processes)
+                @foreach(FileProcess process in new List<FileProcess>(processes))
                 {
                     <div class="entry">
                         <div class="entry-image">

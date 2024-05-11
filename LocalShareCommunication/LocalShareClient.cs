@@ -46,17 +46,22 @@ public class LocalShareClient : IDisposable
 
         FileProcess process;
 
+        PacketType packetType = packet.Type;
+
         if (!fileProcesses.ContainsKey(key))
         {
-            process = new FileProcess(key);
-            fileProcesses[key] = process;
-            SendEvent(EventType.StartDownloading, process);
+            if(PacketType.FileName.Equals(packetType))
+            {
+                process = new FileProcess(key);
+                fileProcesses[key] = process;
+            } else
+            {
+                return;
+            }
         } else
         {
             process = fileProcesses[key];
         }
-
-        PacketType packetType = packet.Type;
 
         if(PacketType.FileName.Equals(packetType))
         {
@@ -108,6 +113,7 @@ public class LocalShareClient : IDisposable
          * AUTO-ACCEPTING FILES NEED TO BE REMOVED ON RELEASE!
          * 
         */
+        SendEvent(EventType.StartDownloading, process);
         Accept(process);
     }
 

@@ -51,7 +51,7 @@
     {
         <div class="entries-container">
         <div class="entries">
-            @foreach (FileSendProcess process in processes)
+            @foreach (FileSendProcess process in new List<FileSendProcess>(processes))
             {
                 <div class="entry">
                     <div class="entry-image">
