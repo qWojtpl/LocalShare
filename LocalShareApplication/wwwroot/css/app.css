@@ -228,6 +228,8 @@
     #slide-page .entry-name {
         font-size: 180%;
         font-weight: 600;
+        white-space: nowrap;
+        text-overflow: ellipsis;
         color: var(--font-second-color);
         margin-left: 2vw;
         margin-top: 2vw;

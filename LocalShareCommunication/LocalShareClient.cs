@@ -93,6 +93,7 @@ public class LocalShareClient : IDisposable
             return;
         }
         process.Accepted = true;
+        process.Writer = File.OpenWrite(Shared.FilesPath + process.FileName);
         RequestFileSizePacket(process);
         SendEvent(EventType.Accept, process);
     }
@@ -119,50 +120,8 @@ public class LocalShareClient : IDisposable
         process.FileSize = int.Parse(EncodingManager.GetText(packet.Data));
         if (!process.Running)
         {
-            RunChunks(process);
+            RequestPacket(process, process.LastPacket);
         }
-    }
-
-    private void RunChunks(FileProcess process)
-    {
-        process.Running = true;
-        for (int i = 0; i < Shared.GoalChunkCount; i++)
-        {
-            int tmp = i;
-            new Thread(() => RunChunk(process, tmp)).Start();
-        }
-       // new Thread(() => StartMonitoring(process)).Start();
-    }
-
-    private void RunChunk(FileProcess process, int chunkIdentifier)
-    {
-        Chunk chunk = process.Chunks[chunkIdentifier];
-        NextChunkRequest(process, chunk);
-    }
-
-    private void StartMonitoring(FileProcess process)
-    {
-        if (!fileProcesses.ContainsKey(process.Key))
-        {
-            return;
-        }
-        Console.Clear();
-        Console.WriteLine("Total chunks: " + process.Chunks.Count);
-        foreach (Chunk chunk in process.Chunks)
-        {
-            Console.WriteLine("Chunk " + chunk.Id + ": " + ((double) (chunk.LastPacket - chunk.Min) / (chunk.Max - chunk.Min)) * 100 + "%" + " (" + (chunk.LastPacket - chunk.Min) + "/" + (chunk.Max - chunk.Min) + ")");
-        }
-        Thread.Sleep(2000);
-        StartMonitoring(process);
-    }
-
-    private void NextChunkRequest(FileProcess process, Chunk chunk)
-    {
-        if (chunk.LastPacket * Shared.MaxDataSize > process.FileSize || chunk.LastPacket == chunk.Max)
-        {
-            return;
-        }
-        RequestPacket(chunk, chunk.LastPacket);
     }
 
     private void HandleBytePacket(FileProcess process, Packet packet)
@@ -172,51 +131,51 @@ public class LocalShareClient : IDisposable
             return;
         }
         long identifier = packet.Identifier;
-        Chunk chunk = process.Chunks[(int) (identifier / process.ChunkSize)];
-        if (chunk.LastPacket != identifier)
+
+        if (process.LastPacket != identifier)
         {
             return;
         }
 
-        if(chunk.Writer.CanWrite)
+        if(process.Writer.CanWrite)
         {
             process.ActualSize += packet.Data.Length;
-            chunk.Writer.Write(packet.Data, 0, packet.Data.Length);
-            chunk.LastPacket++;
-            NextChunkRequest(process, chunk);
-        } else
-        {
-            NextChunkRequest(process, chunk);
+            process.Writer.Write(packet.Data, 0, packet.Data.Length);
+            process.LastPacket++;
+            RequestPacket(process, process.LastPacket);
         }
 
         if (process.ActualSize >= process.FileSize && !process.Closed)
         {
-            process.CloseChunkWriters();
-            process.MergeChunks();
+            process.Writer.Close();
             SendEvent(EventType.EndDownloading, process);
             fileProcesses.Remove(process.Key, out _);
+        } else
+        {
+            Console.WriteLine((double) process.ActualSize / process.FileSize);
+            Console.WriteLine(process.ActualSize + "/" + process.FileSize);
         }
 
     }
 
-    private void RequestPacket(Chunk chunk, long identifier, int sleepTime = 350)
+    private void RequestPacket(FileProcess process, long identifier, int sleepTime = 1000)
     {
-        if(identifier < chunk.LastPacket)
+        if(identifier < process.LastPacket)
         {
             return;
         }
-        Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
-        _packetSender.SendData(PacketType.Byte, chunk.Process.Key, identifier, new byte[0]);
-        new Thread(() => CheckTimeout(chunk, identifier, sleepTime)).Start();
+        //Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
+        _packetSender.SendData(PacketType.Byte, process.Key, identifier, new byte[0]);
+        new Thread(() => CheckTimeout(process, identifier, sleepTime)).Start();
     }
 
-    private void CheckTimeout(Chunk chunk, long identifier, int sleepTime)
+    private void CheckTimeout(FileProcess process, long identifier, int sleepTime)
     {
         Thread.Sleep(sleepTime);
-        if (chunk.LastPacket <= identifier && chunk.LastPacket != chunk.Max)
+        if (process.LastPacket == identifier && !process.Closed)
         {
-            Console.WriteLine("Request timed out.");
-            RequestPacket(chunk, identifier, sleepTime + 100);
+            //Console.WriteLine($"Request timed out. ({identifier})");
+            RequestPacket(process, identifier, sleepTime + 100);
         }
     }
 

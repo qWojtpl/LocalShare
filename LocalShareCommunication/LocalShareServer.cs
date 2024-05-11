@@ -119,10 +119,10 @@ public class LocalShareServer
     private void SendFilePacket(FileSendProcess process, long identifier)
     {
         long bufferSize = Shared.MaxDataSize;
-        if ((identifier + 1) * Shared.MaxDataSize > process.FileSize)
+/*        if (identifier * Shared.MaxDataSize > process.FileSize)
         {
-            bufferSize = process.FileSize - identifier * Shared.MaxDataSize;
-        }
+            bufferSize = process.FileSize - (identifier - 1) * Shared.MaxDataSize;
+        }*/
         if (bufferSize <= 0)
         {
             return;
