@@ -63,9 +63,8 @@
                         <div class="entry-name">
                             @process.FileName
                         </div>
-                        <div class="progress-bar">
-                            <div class="progress-bar-percentage">
-                            </div>
+                        <div class="entry-available">
+                            Available to: @(DateTimeOffset.FromUnixTimeSeconds((process.LastRequest) + Shared.UploadTimeout).ToString().Substring(0, 19))
                         </div>
                     </div>
                     <div class="entry-end">
@@ -73,7 +72,7 @@
                             Cancel
                         </div>
                         <div class="entry-percentage">
-                            100%
+                            
                         </div>
                     </div>
                 </div>

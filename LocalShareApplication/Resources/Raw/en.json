@@ -18,5 +18,7 @@
   "samePortsWarning": "Ports cannot be the same!",
   "listenForNewFiles": "Listen for new files",
   "clearFilesLog": "Clear files log",
-  "listeningIsOff": "Listening for new files is turned off!"
+  "listeningIsOff": "Listening for new files is turned off!",
+  "accept": "Accept",
+  "decline": "Decline"
 }

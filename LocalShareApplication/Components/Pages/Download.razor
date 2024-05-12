@@ -98,7 +98,13 @@
                                     Cancel
                                 </div>
                                 <div class="entry-percentage">
-                                    @((int)(((double)process.ActualSize / process.FileSize) * 100))%
+                                    @if(process.FileSize != 0)
+                                    {
+                                        @((int)(((double)process.ActualSize / process.FileSize) * 100))<text>%</text>
+                                    } else
+                                    {
+                                        <text>INIT</text>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -114,10 +120,10 @@
                                 </div>
                                 <div class="entry-buttons">
                                     <div class="entry-accept" @onclick="(() => CommunicationManager.Client.Accept(process))">
-                                        Accept
+                                        @LanguageManager.Get("accept")
                                     </div>
                                     <div class="entry-decline" @onclick="(() => CommunicationManager.Client.Decline(process))">
-                                        Decline
+                                        @LanguageManager.Get("decline")
                                     </div>
                                 </div>
                             </div>

@@ -235,6 +235,14 @@
         margin-top: 2vw;
     }
 
+    .entry-available {
+        margin-left: 2vw;
+        margin-top: 2vw;
+        font-size: 120%;
+        font-weight: 600;
+        color: var(--font-second-color);
+    }
+
     .progress-bar {
         width: 55vw;
         height: 2vw;
@@ -278,6 +286,7 @@
     .entry-buttons {
         width: 77.22vw;
         margin-left: 2vw;
+        margin-top: 1vw;
         display: flex;
         gap: 2.5%;
     }
@@ -302,7 +311,7 @@
     width: 100vw;
     height: 88vh;
     overflow-y: scroll;
-    scrollbar-width: none; 
+    scrollbar-width: none;
     scroll-behavior: smooth;
 }
 

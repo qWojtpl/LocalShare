@@ -18,5 +18,7 @@
   "samePortsWarning": "Porty nie mogą być takie same!",
   "listenForNewFiles": "Szukaj nowych plików w sieci",
   "clearFilesLog": "Wyczyść historię plików",
-  "listeningIsOff": "Szukanie nowych plików jest wyłączone!"
+  "listeningIsOff": "Szukanie nowych plików jest wyłączone!",
+  "accept": "Akceptuj",
+  "decline": "Odrzuć"
 }

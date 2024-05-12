@@ -3,6 +3,7 @@ using LocalShareCommunication.Packets;
 using LocalShareCommunication.Misc;
 using LocalShareCommunication.Client;
 using LocalShareCommunication.Events;
+using System.Diagnostics;
 
 namespace LocalShareCommunication;
 
@@ -52,8 +53,7 @@ public class LocalShareClient : IDisposable
         {
             if(PacketType.FileName.Equals(packetType))
             {
-                process = new FileProcess(key);
-                fileProcesses[key] = process;
+                process = CreateProcess(packet);
             } else
             {
                 return;
@@ -122,18 +122,23 @@ public class LocalShareClient : IDisposable
         SendEvent(EventType.Decline, process);
     }
 
+    private FileProcess CreateProcess(Packet packet)
+    {
+        FileProcess process = new FileProcess(packet.Key);
+        fileProcesses[packet.Key] = process;
+        new Thread(() =>
+        {
+            Thread.Sleep((Shared.UploadTimeout - 2) * 1000);
+            Decline(process);
+        }).Start();
+        return process;
+    }
+
     private void HandleFileNamePacket(FileProcess process, Packet packet)
     {
         process.FileName = EncodingManager.GetText(packet.Data); 
         CreateDirectory();
         SendEvent(EventType.StartDownloading, process);
-        /*
-         *
-         * ONLY FOR DEV BUILD
-         * AUTO-ACCEPTING FILES NEED TO BE REMOVED ON RELEASE!
-         * 
-        */
-        //Accept(process);
     }
 
     private void HandleFileSizePacket(FileProcess process, Packet packet)
