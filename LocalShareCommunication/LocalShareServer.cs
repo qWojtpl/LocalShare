@@ -46,6 +46,22 @@ public class LocalShareServer
         return keyFiles.Values.ToList();
     }
 
+    public void Cancel(FileSendProcess process)
+    {
+        if (!keyFiles.ContainsKey(process.Key))
+        {
+            return;
+        }
+        CloseProcess(process);
+        SendEvent(EventType.Cancel, process);
+    }
+
+    private void CloseProcess(FileSendProcess process)
+    {
+        process.Reader.Close();
+        keyFiles.Remove(process.Key);
+    }
+
     private void HandleRequest(Packet packet)
     {
         if (!keyFiles.ContainsKey(packet.Key))
@@ -78,18 +94,16 @@ public class LocalShareServer
             keyFiles[key] = process;
             SendFileNamePacket(process);
             SendEvent(EventType.StartUploading, process);
-            while (!_disposed)
+            while (!_disposed && keyFiles.ContainsKey(key))
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
                 if(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - process.LastRequest > Shared.UploadTimeout)
                 {
-                    process.Reader.Close();
-                    Console.WriteLine(path + " is not used anymore!");
-                    keyFiles.Remove(key);
-                    SendEvent(EventType.EndUploading, process);
-                    return;
+                    break;
                 }
             }
+            CloseProcess(process);
+            SendEvent(EventType.EndUploading, process);
         }).Start();
     }
 

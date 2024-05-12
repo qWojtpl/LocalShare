@@ -3,13 +3,13 @@ using LocalShareCommunication.Packets;
 using LocalShareCommunication.Misc;
 using LocalShareCommunication.Client;
 using LocalShareCommunication.Events;
-using System.Diagnostics;
 
 namespace LocalShareCommunication;
 
 public class LocalShareClient : IDisposable
 {
 
+    private bool stopped = false;
     private readonly PacketListener _packetListener;
     private readonly PacketSender _packetSender;
     public int Port { get; }
@@ -34,6 +34,7 @@ public class LocalShareClient : IDisposable
     public void Stop()
     {
         _packetListener.StopListener();
+        stopped = true;
     }
 
     public void AddEventHandler(Action<EventType, FileProcess> action)
@@ -97,6 +98,12 @@ public class LocalShareClient : IDisposable
         {
             return;
         }
+        if (File.Exists(Shared.FilesPath + process.FileName))
+        {
+            process.FileName = "_" + process.FileName;
+            Accept(process);
+            return;
+        }
         process.Accepted = true;
         process.Writer = File.OpenWrite(Shared.FilesPath + process.FileName);
         RequestFileSizePacket(process);
@@ -122,13 +129,34 @@ public class LocalShareClient : IDisposable
         SendEvent(EventType.Decline, process);
     }
 
+    public void Cancel(FileProcess process)
+    {
+        if (!fileProcesses.ContainsKey(process.Key))
+        {
+            return;
+        }
+        CloseProcess(process);
+        File.Delete(process.Writer.Name);
+        SendEvent(EventType.Cancel, process);
+    }
+
+    private void CloseProcess(FileProcess process)
+    {
+        process.Closed = true;
+        process.Writer.Close();
+        fileProcesses.Remove(process.Key);
+    }
+
     private FileProcess CreateProcess(Packet packet)
     {
         FileProcess process = new FileProcess(packet.Key);
         fileProcesses[packet.Key] = process;
         new Thread(() =>
         {
-            Thread.Sleep((Shared.UploadTimeout - 2) * 1000);
+            for(int i = 0; i < 1000 && fileProcesses.ContainsKey(packet.Key) && !stopped; i++)
+            {
+                Thread.Sleep(Shared.UploadTimeout - 2);
+            }
             Decline(process);
         }).Start();
         return process;
@@ -177,10 +205,8 @@ public class LocalShareClient : IDisposable
 
         if (process.ActualSize >= process.FileSize && !process.Closed)
         {
-            process.Closed = true;
-            process.Writer.Close();
+            CloseProcess(process);
             SendEvent(EventType.EndDownloading, process);
-            fileProcesses.Remove(process.Key, out _);
         } else
         {
             Console.WriteLine((double) process.ActualSize / process.FileSize);

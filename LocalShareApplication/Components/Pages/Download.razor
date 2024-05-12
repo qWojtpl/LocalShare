@@ -41,7 +41,7 @@
         {
             NotificationManager.SendNotification("LocalShare", "LocalShare Downloader", "End downloading " + process.FileName);
             processes.Remove(process);
-        } else if(EventType.Decline.Equals(type))
+        } else if(EventType.Decline.Equals(type) || EventType.Cancel.Equals(type))
         {
             processes.Remove(process);
         }
@@ -94,7 +94,7 @@
                                 </div>
                             </div>
                             <div class="entry-end">
-                                <div class="entry-cancel">
+                                <div class="entry-cancel" @onclick="() => CommunicationManager.Client.Cancel(process)">
                                     Cancel
                                 </div>
                                 <div class="entry-percentage">

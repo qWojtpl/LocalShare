@@ -27,6 +27,9 @@
         {
             NotificationManager.SendNotification("LocalShare", "LocalShare Uploader", "Stopped uploading" + process.FileName);
             processes.Remove(process);
+        } else if (EventType.Cancel.Equals(type))
+        {
+            processes.Remove(process);
         }
         InvokeAsync(StateHasChanged);
     }
@@ -68,11 +71,8 @@
                         </div>
                     </div>
                     <div class="entry-end">
-                        <div class="entry-cancel">
+                            <div class="entry-cancel" style="margin-top:-1vw;" @onclick="() => CommunicationManager.Server.Cancel(process)">
                             Cancel
-                        </div>
-                        <div class="entry-percentage">
-                            
                         </div>
                     </div>
                 </div>

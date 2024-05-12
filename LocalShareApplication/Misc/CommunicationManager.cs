@@ -7,6 +7,7 @@ public static class CommunicationManager
 {
 
     private static List<Action> clientStartHandlers = new List<Action>();
+    private static bool pathInitialized = false;
 
     public static LocalShareClient Client
     {
@@ -14,6 +15,7 @@ public static class CommunicationManager
         {
             if (_client == null && SettingsManager.ListenForNewFiles)
             {
+                InitPath();
                 _client = new LocalShareClient(SettingsManager.Port, SettingsManager.CallbackPort);
                 _client.Start();
                 foreach(Action handler in clientStartHandlers)
@@ -33,6 +35,7 @@ public static class CommunicationManager
         {
             if (_server == null)
             {
+                InitPath();
                 _server = new LocalShareServer(SettingsManager.Port, SettingsManager.CallbackPort);
                 _server.Start();
             }
@@ -73,6 +76,16 @@ public static class CommunicationManager
         {
             action.Invoke();
         }
+    }
+
+    private static void InitPath()
+    {
+        if (pathInitialized)
+        {
+            return;
+        }
+        pathInitialized = true;
+        Shared.FilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LocalShare/files") + "/";
     }
 
 }

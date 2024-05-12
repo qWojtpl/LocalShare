@@ -21,8 +21,6 @@ public static class FileManager
                 return;
             }
 
-            Shared.FilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LocalShare/files") + "/";
-
             foreach(FileResult fileResult in results)
             {
                 _server.SendFile(fileResult.FullPath);
