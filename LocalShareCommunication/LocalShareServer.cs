@@ -8,6 +8,7 @@ namespace LocalShareCommunication;
 public class LocalShareServer
 {
     
+    private bool _disposed = false;
     private readonly PacketSender _packetSender;
     private readonly PacketListener _packetListener;
     public int Port { get; }
@@ -32,6 +33,7 @@ public class LocalShareServer
     public void Stop()
     {
         _packetListener.StopListener();
+        _disposed = true;
     }
 
     public void AddEventHandler(Action<EventType, FileSendProcess> action)
@@ -76,7 +78,7 @@ public class LocalShareServer
             keyFiles[key] = process;
             SendFileNamePacket(process);
             SendEvent(EventType.StartUploading, process);
-            while (true)
+            while (!_disposed)
             {
                 Thread.Sleep(1000);
                 if(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - process.LastRequest > Shared.UploadTimeout)
@@ -119,7 +121,7 @@ public class LocalShareServer
     private void SendFilePacket(FileSendProcess process, long identifier)
     {
         long bufferSize = Shared.MaxDataSize;
-/*        if (identifier * Shared.MaxDataSize > process.FileSize)
+/*        if (identifier * Shared.MaxDataSize > process.FileSize) //TODO!!!!
         {
             bufferSize = process.FileSize - (identifier - 1) * Shared.MaxDataSize;
         }*/

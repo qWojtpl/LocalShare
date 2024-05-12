@@ -9,5 +9,6 @@ public enum EventType
     StartUploading,
     EndUploading,
     Accept,
+    Decline
 
 }

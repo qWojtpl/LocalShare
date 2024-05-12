@@ -12,23 +12,10 @@ public partial class App : Application
     {
         InitializeComponent();
 
-        LocalNotificationCenter.Current.Show(new NotificationRequest()
-        {
-            NotificationId = 0,
-            Title = "LocalShare App",
-            Subtitle = "LocalShare Application Worker",
-            Description = "LocalShare is now listening on port 2780",
-            BadgeNumber = 42,
-            Schedule = new NotificationRequestSchedule
-            {
-                NotifyTime = DateTime.Now.AddSeconds(5),
-            }
-        });
-
         MainPage = new MainPage();
     }
 
-    protected override Window CreateWindow(IActivationState activationState)
+    protected override Window CreateWindow(IActivationState? activationState)
     {
 
         Window window = base.CreateWindow(activationState);

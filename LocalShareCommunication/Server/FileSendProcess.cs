@@ -9,7 +9,7 @@ public class FileSendProcess : IDisposable
     public string FileName { get; }
     public long FileSize { get; }
     public FileStream Reader { get; }
-    public long LastRequest { get; set; }
+    public long LastRequest { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
     public FileSendProcess(string key, string path)
     {

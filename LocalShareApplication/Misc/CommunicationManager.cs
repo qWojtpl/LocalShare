@@ -6,6 +6,8 @@ namespace LocalShareApplication.Misc;
 public static class CommunicationManager
 {
 
+    private static List<Action> clientStartHandlers = new List<Action>();
+
     public static LocalShareClient Client
     {
         get 
@@ -14,6 +16,10 @@ public static class CommunicationManager
             {
                 _client = new LocalShareClient(SettingsManager.Port, SettingsManager.CallbackPort);
                 _client.Start();
+                foreach(Action handler in clientStartHandlers)
+                {
+                    handler.Invoke();
+                }
             }
             return _client;
         }
@@ -47,6 +53,7 @@ public static class CommunicationManager
         if (_client != null)
         {
             _client.Stop();
+            _client = null;
         }
     }
 
@@ -55,8 +62,17 @@ public static class CommunicationManager
         if (_server != null)
         {
             _server.Stop();
+            _server = null;
         }
     }
 
+    public static void AddClientStartHandler(Action action)
+    {
+        clientStartHandlers.Add(action);
+        if (Client != null)
+        {
+            action.Invoke();
+        }
+    }
 
 }

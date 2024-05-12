@@ -17,5 +17,6 @@
   "callbackPort": "Port zwrotny",
   "samePortsWarning": "Porty nie mogą być takie same!",
   "listenForNewFiles": "Szukaj nowych plików w sieci",
-  "clearFilesLog": "Wyczyść historię plików"
+  "clearFilesLog": "Wyczyść historię plików",
+  "listeningIsOff": "Szukanie nowych plików jest wyłączone!"
 }

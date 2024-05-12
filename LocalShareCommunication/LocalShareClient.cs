@@ -103,18 +103,37 @@ public class LocalShareClient : IDisposable
         SendEvent(EventType.Accept, process);
     }
 
+    public void Decline(string key)
+    {
+        if (!fileProcesses.ContainsKey(key))
+        {
+            return;
+        }
+        Decline(fileProcesses[key]);
+    }
+
+    public void Decline(FileProcess process)
+    {
+        if (process.Accepted)
+        {
+            return;
+        }
+        fileProcesses.Remove(process.Key);
+        SendEvent(EventType.Decline, process);
+    }
+
     private void HandleFileNamePacket(FileProcess process, Packet packet)
     {
         process.FileName = EncodingManager.GetText(packet.Data); 
         CreateDirectory();
+        SendEvent(EventType.StartDownloading, process);
         /*
          *
          * ONLY FOR DEV BUILD
          * AUTO-ACCEPTING FILES NEED TO BE REMOVED ON RELEASE!
          * 
         */
-        SendEvent(EventType.StartDownloading, process);
-        Accept(process);
+        //Accept(process);
     }
 
     private void HandleFileSizePacket(FileProcess process, Packet packet)
@@ -153,6 +172,7 @@ public class LocalShareClient : IDisposable
 
         if (process.ActualSize >= process.FileSize && !process.Closed)
         {
+            process.Closed = true;
             process.Writer.Close();
             SendEvent(EventType.EndDownloading, process);
             fileProcesses.Remove(process.Key, out _);

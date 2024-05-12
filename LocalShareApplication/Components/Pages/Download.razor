@@ -7,6 +7,12 @@
 
     public Download()
     {
+        CommunicationManager.AddClientStartHandler(RegisterHandler);
+    }
+
+    public void RegisterHandler()
+    {
+        processes = new();
         if (CommunicationManager.Client != null)
         {
             CommunicationManager.Client.AddEventHandler(HandleEvent);
@@ -22,6 +28,7 @@
                 return;
             }
             processes.Add(process);
+            NotificationManager.SendNotification("LocalShare", "LocalShare Downloader", "Started downloading " + process.FileName);
             new Thread(() =>
             {
                 while (processes.Contains(process))
@@ -30,8 +37,11 @@
                     InvokeAsync(StateHasChanged);
                 }
             }).Start();
-        }
-        else if (EventType.EndDownloading.Equals(type))
+        } else if (EventType.EndDownloading.Equals(type))
+        {
+            NotificationManager.SendNotification("LocalShare", "LocalShare Downloader", "End downloading " + process.FileName);
+            processes.Remove(process);
+        } else if(EventType.Decline.Equals(type))
         {
             processes.Remove(process);
         }
@@ -54,7 +64,13 @@
     @if (processes.Count() == 0)
     {
         <div class="empty-text">
-            <span>@LanguageManager.Get("noDownloadingFiles")</span>
+            @if (SettingsManager.ListenForNewFiles)
+            {
+                <span>@LanguageManager.Get("noDownloadingFiles")</span>
+            } else 
+            {
+                <span>@LanguageManager.Get("listeningIsOff")</span>
+            }
         </div>
     } else
     {
@@ -62,28 +78,51 @@
             <div class="entries">
                 @foreach(FileProcess process in new List<FileProcess>(processes))
                 {
-                    <div class="entry">
-                        <div class="entry-image">
-                            <img src="images/file.svg" />
-                        </div>
-                        <div class="entry-middle">
-                            <div class="entry-name">
-                                @process.FileName
+                    if (process.Accepted)
+                    {
+                        <div class="entry">
+                            <div class="entry-image">
+                                <img src="images/file.svg" />
                             </div>
-                            <div class="progress-bar">
-                                <div class="progress-bar-percentage" style="width:@((int) (((double) process.ActualSize / process.FileSize) * 100))%">
+                            <div class="entry-middle">
+                                <div class="entry-name">
+                                    @process.FileName
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-percentage" style="width:@((int) (((double) process.ActualSize / process.FileSize) * 100))%">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="entry-end">
+                                <div class="entry-cancel">
+                                    Cancel
+                                </div>
+                                <div class="entry-percentage">
+                                    @((int)(((double)process.ActualSize / process.FileSize) * 100))%
                                 </div>
                             </div>
                         </div>
-                        <div class="entry-end">
-                            <div class="entry-cancel">
-                                Cancel
+                    } else
+                    {
+                        <div class="entry">
+                            <div class="entry-image">
+                                <img src="images/file-request.svg" />
                             </div>
-                            <div class="entry-percentage">
-                                @((int) (((double) process.ActualSize / process.FileSize) * 100))%
+                            <div class="entry-request">
+                                <div class="entry-name">
+                                    @process.FileName
+                                </div>
+                                <div class="entry-buttons">
+                                    <div class="entry-accept" @onclick="(() => CommunicationManager.Client.Accept(process))">
+                                        Accept
+                                    </div>
+                                    <div class="entry-decline" @onclick="(() => CommunicationManager.Client.Decline(process))">
+                                        Decline
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 }
             </div>
         </div>   

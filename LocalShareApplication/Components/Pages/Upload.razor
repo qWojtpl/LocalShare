@@ -21,9 +21,11 @@
             {
                 return;
             }
+            NotificationManager.SendNotification("LocalShare", "LocalShare Uploader", "Started uploading " + process.FileName);
             processes.Add(process);
         } else if (EventType.EndUploading.Equals(type))
         {
+            NotificationManager.SendNotification("LocalShare", "LocalShare Uploader", "Stopped uploading" + process.FileName);
             processes.Remove(process);
         }
         InvokeAsync(StateHasChanged);
