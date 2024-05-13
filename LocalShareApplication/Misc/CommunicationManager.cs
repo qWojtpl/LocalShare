@@ -1,5 +1,6 @@
 ﻿
 using LocalShareCommunication;
+using System.Diagnostics;
 
 namespace LocalShareApplication.Misc;
 
@@ -85,7 +86,13 @@ public static class CommunicationManager
             return;
         }
         pathInitialized = true;
+#if WINDOWS
         Shared.FilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LocalShare/files") + "/";
+#endif
+#if ANDROID
+        Shared.FilesPath = Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath, "LocalShare/");
+#endif
+
     }
 
 }

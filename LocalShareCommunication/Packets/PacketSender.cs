@@ -26,7 +26,7 @@ public class PacketSender : IDisposable
         byte[] packetBytes = packet.Create();
         _udpClient.SendAsync(packetBytes, packetBytes.Length, new IPEndPoint(IPAddress.Broadcast, Port));
     }
-
+    
     public void Dispose()
     {
         _udpClient.Close();

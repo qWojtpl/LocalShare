@@ -34,6 +34,10 @@ public class PacketListener : IDisposable
                 try
                 {
                     byte[] responseData = _listener.Receive(ref remoteEP);
+                    if (responseData.Length == 0)
+                    {
+                        continue;
+                    }
                     new Thread(() => _handler.Invoke(new Packet(responseData))).Start();
                 } catch(Exception)
                 {

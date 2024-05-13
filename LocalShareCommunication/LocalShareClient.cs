@@ -167,6 +167,8 @@ public class LocalShareClient : IDisposable
         process.FileName = EncodingManager.GetText(packet.Data); 
         CreateDirectory();
         SendEvent(EventType.StartDownloading, process);
+
+        Accept(process);
     }
 
     private void HandleFileSizePacket(FileProcess process, Packet packet)
@@ -221,7 +223,7 @@ public class LocalShareClient : IDisposable
         {
             return;
         }
-        //Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
+        Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
         _packetSender.SendData(PacketType.Byte, process.Key, identifier, new byte[0]);
         new Thread(() => CheckTimeout(process, identifier, sleepTime)).Start();
     }
@@ -231,7 +233,7 @@ public class LocalShareClient : IDisposable
         Thread.Sleep(sleepTime);
         if (process.LastPacket == identifier && !process.Closed)
         {
-            //Console.WriteLine($"Request timed out. ({identifier})");
+            Console.WriteLine($"Request timed out. ({identifier})");
             RequestPacket(process, identifier, sleepTime + 100);
         }
     }

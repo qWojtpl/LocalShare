@@ -21,10 +21,6 @@ namespace LocalShareApplication
                     events.AddWindows(windows => windows
                            .OnClosed((window, args) => StopCommunication()));
 #endif
-#if ANDROID
-                    events.AddAndroid(windows => windows
-                           .OnStop((activity) => StopCommunication()));
-#endif
                     static bool StopCommunication()
                     {
                         CommunicationManager.StopAll();
