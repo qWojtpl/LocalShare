@@ -62,6 +62,11 @@
         }
     }
 
+    private void ClearHistory()
+    {
+        SettingsManager.History = "";
+    }
+
 }
 
 <div id="slide-page" class="page" style="@Loader.PageStyles["Settings"]">
@@ -108,7 +113,7 @@
                     }
                 </div>
             </div>
-            <button class="option-button">@LanguageManager.Get("clearFilesLog")</button>
+            <button class="option-button" @onclick="ClearHistory">@LanguageManager.Get("clearFilesLog")</button>
         </div>
     </div>
 
