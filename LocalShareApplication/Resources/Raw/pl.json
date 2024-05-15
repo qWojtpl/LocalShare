@@ -20,5 +20,7 @@
   "clearFilesLog": "Wyczyść historię plików",
   "listeningIsOff": "Szukanie nowych plików jest wyłączone!",
   "accept": "Akceptuj",
-  "decline": "Odrzuć"
+  "decline": "Odrzuć",
+  "cancel": "Anuluj",
+  "availableTo": "Dostępne do: "
 }

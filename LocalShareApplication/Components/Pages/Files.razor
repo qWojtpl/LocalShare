@@ -12,38 +12,33 @@
         </div>
     </div>
 
-    <div class="empty-text">
-        <span>@LanguageManager.Get("noFilesInHistory")</span>
-    </div>
-
-    <div class="entries-container">
-        <div class="entries">
-            @for(int i = 0; i < 100; i++)
-            {
-                <div class="entry">
-                    <div class="entry-image">
-                        <img src="images/file.svg" />
-                    </div>
-                    <div class="entry-middle">
-                        <div class="entry-name">
-                            test.mp4
+    @if(HistoryManager.GetHistoryObjects().Count() == 0)
+    {
+        <div class="empty-text">
+            <span>@LanguageManager.Get("noFilesInHistory")</span>
+        </div>
+    } else
+    {
+        <div class="entries-container">
+            <div class="entries">
+                @foreach (HistoryObject obj in HistoryManager.GetHistoryObjects())
+                {
+                    <div class="entry">
+                        <div class="entry-image">
+                            <img src="images/file.svg" />
                         </div>
-                        <div class="progress-bar">
-                            <div class="progress-bar-percentage">
+                        <div class="entry-request">
+                            <div class="entry-name">
+                                @obj.Name
+                            </div>
+                            <div class="entry-available">
+                                @obj.Type @obj.Date
                             </div>
                         </div>
                     </div>
-                    <div class="entry-end">
-                        <div class="entry-cancel">
-                            Cancel
-                        </div>
-                        <div class="entry-percentage">
-                            100%
-                        </div>
-                    </div>
-                </div>
-            }
+                }
+            </div>
         </div>
-    </div>
+    }
 
 </div>

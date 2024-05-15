@@ -21,11 +21,10 @@
             {
                 return;
             }
-            NotificationManager.SendNotification("LocalShare", "LocalShare Uploader", "Started uploading " + process.FileName);
             processes.Add(process);
         } else if (EventType.EndUploading.Equals(type))
         {
-            NotificationManager.SendNotification("LocalShare", "LocalShare Uploader", "Stopped uploading" + process.FileName);
+            HistoryManager.AddToHistory(process);
             processes.Remove(process);
         } else if (EventType.Cancel.Equals(type))
         {
@@ -67,12 +66,12 @@
                             @process.FileName
                         </div>
                         <div class="entry-available">
-                            Available to: @(DateTimeOffset.FromUnixTimeSeconds((process.LastRequest) + Shared.UploadTimeout).ToString().Substring(0, 19))
+                            @LanguageManager.Get("availableTo") @(DateTimeOffset.FromUnixTimeSeconds((process.LastRequest) + Shared.UploadTimeout).ToLocalTime().ToString().Substring(0, 19))
                         </div>
                     </div>
                     <div class="entry-end">
-                            <div class="entry-cancel" style="margin-top:-1vw;" @onclick="() => CommunicationManager.Server.Cancel(process)">
-                            Cancel
+                        <div class="entry-cancel" style="margin-top:-1vw;" @onclick="() => CommunicationManager.Server.Cancel(process)">
+                            @LanguageManager.Get("cancel")
                         </div>
                     </div>
                 </div>

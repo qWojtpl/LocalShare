@@ -20,5 +20,7 @@
   "clearFilesLog": "Clear files log",
   "listeningIsOff": "Listening for new files is turned off!",
   "accept": "Accept",
-  "decline": "Decline"
+  "decline": "Decline",
+  "cancel": "Cancel",
+  "availableTo": "Available to: "
 }

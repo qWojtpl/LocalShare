@@ -28,7 +28,6 @@
                 return;
             }
             processes.Add(process);
-            NotificationManager.SendNotification("LocalShare", "LocalShare Downloader", "Started downloading " + process.FileName);
             new Thread(() =>
             {
                 while (processes.Contains(process))
@@ -39,7 +38,7 @@
             }).Start();
         } else if (EventType.EndDownloading.Equals(type))
         {
-            NotificationManager.SendNotification("LocalShare", "LocalShare Downloader", "End downloading " + process.FileName);
+            HistoryManager.AddToHistory(process);
             processes.Remove(process);
         } else if(EventType.Decline.Equals(type) || EventType.Cancel.Equals(type))
         {
@@ -95,7 +94,7 @@
                             </div>
                             <div class="entry-end">
                                 <div class="entry-cancel" @onclick="() => CommunicationManager.Client.Cancel(process)">
-                                    Cancel
+                                    @LanguageManager.Get("cancel")
                                 </div>
                                 <div class="entry-percentage">
                                     @if(process.FileSize != 0)

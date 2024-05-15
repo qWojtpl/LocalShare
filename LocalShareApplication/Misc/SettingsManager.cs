@@ -49,6 +49,18 @@ public static class SettingsManager
         }
     }
 
+    public static string History
+    {
+        get
+        {
+            return GetSetting("history", Default.History);
+        }
+        set
+        {
+            SetSetting("history", value);
+        }
+    }
+
     public class Default
     {
         public static int Port
@@ -69,6 +81,11 @@ public static class SettingsManager
         public static bool ListenForNewFiles
         {
             get => true;
+        }
+
+        public static string History
+        {
+            get => "";
         }
 
     }
