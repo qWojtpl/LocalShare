@@ -10,8 +10,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalShareApplication", "Lo
 		{32DD04F3-5A80-492B-81BD-E0A96ADFDB24} = {32DD04F3-5A80-492B-81BD-E0A96ADFDB24}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorAnimate", "..\BlazorAnimate\BlazorAnimate.csproj", "{83ECDE83-84FF-453C-95FD-633C0F8E7303}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

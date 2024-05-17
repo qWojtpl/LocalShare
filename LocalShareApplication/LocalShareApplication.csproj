@@ -69,6 +69,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
         <PackageReference Include="Plugin.LocalNotification" Version="11.1.2" />
+        <PackageReference Include="qWojtpl.BlazorAnimate" Version="1.0.1" />
     </ItemGroup>
 
     <ItemGroup>
