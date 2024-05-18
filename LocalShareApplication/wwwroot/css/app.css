@@ -39,6 +39,7 @@
     font-size: 2.77vw;
     color: var(--font-color);
     overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* Pages */

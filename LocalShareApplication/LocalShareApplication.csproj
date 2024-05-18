@@ -43,7 +43,7 @@
 
     <ItemGroup>
         <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#17AB5B" />
 
         <!-- Splash Screen -->
         <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#17AB5B" BaseSize="128,128" />
@@ -74,10 +74,6 @@
 
     <ItemGroup>
       <Folder Include="Resources\Images\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\BlazorAnimate\BlazorAnimate.csproj" />
     </ItemGroup>
 
     <ItemGroup>
