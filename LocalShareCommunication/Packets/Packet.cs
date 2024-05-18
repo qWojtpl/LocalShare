@@ -20,10 +20,6 @@ public class Packet
         {
             throw new Exception("Packet too small.");
         }
-        if (responseData.Length > Shared.PacketLength)
-        {
-            throw new Exception("Packet too large.");
-        }
         InitPacketType(responseData);
         InitKey(responseData);
         InitIdentifier(responseData);

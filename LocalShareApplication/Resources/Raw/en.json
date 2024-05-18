@@ -22,5 +22,7 @@
   "accept": "Accept",
   "decline": "Decline",
   "cancel": "Cancel",
-  "availableTo": "Available to: "
+  "availableTo": "Available to: ",
+  "maxBytesPerPacket": "Bytes/packet ",
+  "maxBytesInfo": "Bytes per packet are limited by your device's MTU! Lower this value if files won't be sending."
 }

@@ -1,10 +1,9 @@
 ﻿using System.Net;
 using LocalShareCommunication.Packets;
 using LocalShareCommunication.Misc;
-using LocalShareCommunication.Client;
 using LocalShareCommunication.Events;
 
-namespace LocalShareCommunication;
+namespace LocalShareCommunication.Client;
 
 public class LocalShareClient : IDisposable
 {
@@ -167,8 +166,8 @@ public class LocalShareClient : IDisposable
         process.FileName = EncodingManager.GetText(packet.Data); 
         CreateDirectory();
         SendEvent(EventType.StartDownloading, process);
-
-        Accept(process);
+        // Only for debugging
+        //Accept(process);
     }
 
     private void HandleFileSizePacket(FileProcess process, Packet packet)

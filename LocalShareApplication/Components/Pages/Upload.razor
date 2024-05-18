@@ -22,9 +22,9 @@
                 return;
             }
             processes.Add(process);
+            HistoryManager.AddToHistory(process);
         } else if (EventType.EndUploading.Equals(type))
         {
-            HistoryManager.AddToHistory(process);
             processes.Remove(process);
         } else if (EventType.Cancel.Equals(type))
         {

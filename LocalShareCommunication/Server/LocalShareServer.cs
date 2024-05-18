@@ -1,13 +1,12 @@
 ﻿using LocalShareCommunication.Events;
 using LocalShareCommunication.Misc;
 using LocalShareCommunication.Packets;
-using LocalShareCommunication.Server;
 
-namespace LocalShareCommunication;
+namespace LocalShareCommunication.Server;
 
 public class LocalShareServer
 {
-    
+
     private bool _disposed = false;
     private readonly PacketSender _packetSender;
     private readonly PacketListener _packetListener;
@@ -71,19 +70,21 @@ public class LocalShareServer
 
         FileSendProcess process = keyFiles[packet.Key];
 
-        if(PacketType.FileName.Equals(packet.Type))
+        if (PacketType.FileName.Equals(packet.Type))
         {
             SendFileNamePacket(process);
-        } else if(PacketType.FileSize.Equals(packet.Type))
+        }
+        else if (PacketType.FileSize.Equals(packet.Type))
         {
             SendFileSizePacket(process);
-        } else if(PacketType.Byte.Equals(packet.Type))
+        }
+        else if (PacketType.Byte.Equals(packet.Type))
         {
             SendFilePacket(process, packet.Identifier);
         }
 
     }
-    
+
     public void SendFile(string path)
     {
         new Thread(() =>
@@ -97,7 +98,7 @@ public class LocalShareServer
             while (!_disposed && keyFiles.ContainsKey(key))
             {
                 Thread.Sleep(100);
-                if(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - process.LastRequest > Shared.UploadTimeout)
+                if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() - process.LastRequest > Shared.UploadTimeout)
                 {
                     break;
                 }
@@ -135,16 +136,16 @@ public class LocalShareServer
     private void SendFilePacket(FileSendProcess process, long identifier)
     {
         long bufferSize = Shared.MaxDataSize;
-/*        if (identifier * Shared.MaxDataSize > process.FileSize) //TODO!!!!
-        {
-            bufferSize = process.FileSize - (identifier - 1) * Shared.MaxDataSize;
-        }*/
+        /*        if (identifier * Shared.MaxDataSize > process.FileSize) //TODO!!!!
+                {
+                    bufferSize = process.FileSize - (identifier - 1) * Shared.MaxDataSize;
+                }*/
         if (bufferSize <= 0)
         {
             return;
         }
         byte[] buffer = new byte[bufferSize];
-        process.Reader.Position = (int) identifier * Shared.MaxDataSize;
+        process.Reader.Position = (int)identifier * Shared.MaxDataSize;
         process.Reader.Read(buffer, 0, buffer.Length);
         SendData(PacketType.Byte, process.Key, identifier, buffer);
         process.LastRequest = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

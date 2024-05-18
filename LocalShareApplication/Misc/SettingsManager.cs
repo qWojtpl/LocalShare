@@ -25,6 +25,18 @@ public static class SettingsManager
         }
     }
 
+    public static int MaxBytesPerPacket
+    {
+        get
+        {
+            return GetSetting("maxBytesPerPacket", Default.MaxBytesPerPacket);
+        }
+        set
+        {
+            SetSetting("maxBytesPerPacket", value);
+        }
+    }
+
     public static string Language
     {
         get
@@ -71,6 +83,11 @@ public static class SettingsManager
         public static int CallbackPort
         {
             get => 2781;
+        }
+
+        public static int MaxBytesPerPacket
+        {
+            get => 1447;
         }
 
         public static string Language

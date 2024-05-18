@@ -22,5 +22,7 @@
   "accept": "Akceptuj",
   "decline": "Odrzuć",
   "cancel": "Anuluj",
-  "availableTo": "Dostępne do: "
+  "availableTo": "Dostępne do: ",
+  "maxBytesPerPacket": "Bajty/pakiet ",
+  "maxBytesInfo": "Bajty na pakiet są ograniczone przez MTU twojego urządzenia! Zmniejsz liczbę bajtów jeżeli pliki nie będą się wysyłać."
 }
