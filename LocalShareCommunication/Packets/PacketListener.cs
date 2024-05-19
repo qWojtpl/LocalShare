@@ -1,21 +1,22 @@
-﻿using System.Net;
+﻿
+using System.Net;
 using System.Net.Sockets;
 
 namespace LocalShareCommunication.Packets;
 
 public class PacketListener : IDisposable
 {
-    
+
     private bool _disposed = false;
-    private UdpClient _listener;
+    private TcpListener _listener;
     public int Port { get; }
-    private Action<Packet> _handler;
+    private Action<TcpClient, Packet> _handler;
     private bool stopped = false;
 
 
-    public PacketListener(int port, Action<Packet> handler)
+    public PacketListener(int port, Action<TcpClient, Packet> handler)
     {
-        this._listener = new UdpClient(port);
+        this._listener = new TcpListener(IPAddress.Any, port);
         Port = port;
         this._handler = handler;
     }
@@ -28,21 +29,12 @@ public class PacketListener : IDisposable
         }
         new Thread(() =>
         {
+            _listener.Start();
             while (!_disposed)
             {
-                IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, Port);
-                try
-                {
-                    byte[] responseData = _listener.Receive(ref remoteEP);
-                    if (responseData.Length == 0)
-                    {
-                        continue;
-                    }
-                    new Thread(() => _handler.Invoke(new Packet(responseData))).Start();
-                } catch(Exception)
-                {
-                    continue;
-                }
+                TcpClient client = _listener.AcceptTcpClient();
+
+                HandleClient(client);
             }
         }).Start();
     }
@@ -53,10 +45,52 @@ public class PacketListener : IDisposable
         stopped = true;
     }
 
+    private void HandleClient(TcpClient client)
+    {
+        new Thread(() =>
+        {
+            NetworkStream stream = client.GetStream();
+            while (!_disposed)
+            {
+                if (!stream.DataAvailable)
+                {
+                    continue;
+                }
+                int totalBytesRead = 0;
+                int bytesRead;
+                byte[] buffer = new byte[1];
+                byte[] totalResponse = new byte[Shared.PacketLength];
+
+                while (stream.DataAvailable && totalBytesRead < Shared.PacketLength)
+                {
+                    bytesRead = stream.Read(buffer, 0, buffer.Length);
+                    if (bytesRead == 0)
+                    {
+                        break;
+                    }
+                    totalResponse[totalBytesRead++] = buffer[0];
+                }
+
+                if (totalBytesRead == 0)
+                {
+                    return;
+                }
+
+                byte[] responseData = new byte[totalBytesRead];
+                for (int i = 0; i < totalBytesRead; i++)
+                {
+                    responseData[i] = totalResponse[i];
+                }
+
+                new Thread(() => _handler.Invoke(client, new Packet(responseData))).Start();
+            }
+        }).Start();
+    }
+
     public void Dispose()
     {
         _disposed = true;
-        _listener.Close();
+        _listener.Stop();
     }
 
 }

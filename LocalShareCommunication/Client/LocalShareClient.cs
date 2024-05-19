@@ -2,6 +2,8 @@
 using LocalShareCommunication.Packets;
 using LocalShareCommunication.Misc;
 using LocalShareCommunication.Events;
+using LocalShareCommunication.UdpService;
+using System.Net.Sockets;
 
 namespace LocalShareCommunication.Client;
 
@@ -9,6 +11,7 @@ public class LocalShareClient : IDisposable
 {
 
     private bool stopped = false;
+    private readonly UdpCallbacker _udpCallbacker;
     private readonly PacketListener _packetListener;
     private readonly PacketSender _packetSender;
     public int Port { get; }
@@ -21,17 +24,20 @@ public class LocalShareClient : IDisposable
         Port = port;
         CallbackPort = callbackPort;
         _packetListener = new PacketListener(port, HandlePacket);
-        _packetSender = new PacketSender(callbackPort);
+        _udpCallbacker = new UdpCallbacker(callbackPort, port);
+        _packetSender = new PacketSender(_udpCallbacker, callbackPort);
         _eventHandler = new Events.EventHandler<FileProcess>();
     }
 
     public void Start()
     {
+        _udpCallbacker.Start();
         _packetListener.StartListener();
     }
 
     public void Stop()
     {
+        _udpCallbacker.Stop();
         _packetListener.StopListener();
         stopped = true;
     }
@@ -41,11 +47,12 @@ public class LocalShareClient : IDisposable
         _eventHandler.AddEventHandler(action);
     }
 
-    private void HandlePacket(Packet packet)
+    private void HandlePacket(TcpClient client, Packet packet)
     {
+
         string key = packet.Key;
 
-        FileProcess process;
+        FileProcess? process;
 
         PacketType packetType = packet.Type;
 
@@ -54,6 +61,10 @@ public class LocalShareClient : IDisposable
             if(PacketType.FileName.Equals(packetType))
             {
                 process = CreateProcess(packet);
+                if (process == null)
+                {
+                    return;
+                }
             } else
             {
                 return;
@@ -63,7 +74,7 @@ public class LocalShareClient : IDisposable
             process = fileProcesses[key];
         }
 
-        if(PacketType.FileName.Equals(packetType))
+        if (PacketType.FileName.Equals(packetType))
         {
             HandleFileNamePacket(process, packet);
         }
@@ -82,15 +93,6 @@ public class LocalShareClient : IDisposable
         return fileProcesses.Values.Where(n => !n.Accepted).ToList();
     }
 
-    public void Accept(string key)
-    {
-        if (!fileProcesses.ContainsKey(key))
-        {
-            return;
-        }
-        Accept(fileProcesses[key]);
-    }
-
     public void Accept(FileProcess process)
     {
         if (process.Accepted)
@@ -105,17 +107,10 @@ public class LocalShareClient : IDisposable
         }
         process.Accepted = true;
         process.Writer = File.OpenWrite(Shared.FilesPath + process.FileName);
+        _udpCallbacker.SendScan();
+        Thread.Sleep(1000);
         RequestFileSizePacket(process);
         SendEvent(EventType.Accept, process);
-    }
-
-    public void Decline(string key)
-    {
-        if (!fileProcesses.ContainsKey(key))
-        {
-            return;
-        }
-        Decline(fileProcesses[key]);
     }
 
     public void Decline(FileProcess process)
@@ -146,8 +141,12 @@ public class LocalShareClient : IDisposable
         fileProcesses.Remove(process.Key);
     }
 
-    private FileProcess CreateProcess(Packet packet)
+    private FileProcess? CreateProcess(Packet packet)
     {
+        if (packet.Data.Length == 0 || packet.Identifier != 0)
+        {
+            return null;
+        }
         FileProcess process = new FileProcess(packet.Key);
         fileProcesses[packet.Key] = process;
         new Thread(() =>
@@ -167,7 +166,7 @@ public class LocalShareClient : IDisposable
         CreateDirectory();
         SendEvent(EventType.StartDownloading, process);
         // Only for debugging
-        //Accept(process);
+        Accept(process);
     }
 
     private void HandleFileSizePacket(FileProcess process, Packet packet)

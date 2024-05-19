@@ -1,6 +1,8 @@
 ﻿using LocalShareCommunication.Events;
 using LocalShareCommunication.Misc;
 using LocalShareCommunication.Packets;
+using LocalShareCommunication.UdpService;
+using System.Net.Sockets;
 
 namespace LocalShareCommunication.Server;
 
@@ -8,6 +10,7 @@ public class LocalShareServer
 {
 
     private bool _disposed = false;
+    private readonly UdpCallbacker _udpCallbacker;
     private readonly PacketSender _packetSender;
     private readonly PacketListener _packetListener;
     public int Port { get; }
@@ -19,18 +22,21 @@ public class LocalShareServer
     {
         Port = port;
         CallbackPort = callbackPort;
-        _packetSender = new PacketSender(port);
+        _udpCallbacker = new UdpCallbacker(port, callbackPort);
+        _packetSender = new PacketSender(_udpCallbacker, port);
         _packetListener = new PacketListener(callbackPort, HandleRequest);
         _eventHandler = new Events.EventHandler<FileSendProcess>();
     }
 
     public void Start()
     {
+        _udpCallbacker.Start();
         _packetListener.StartListener();
     }
 
     public void Stop()
     {
+        _udpCallbacker.Stop();
         _packetListener.StopListener();
         _disposed = true;
     }
@@ -61,7 +67,7 @@ public class LocalShareServer
         keyFiles.Remove(process.Key);
     }
 
-    private void HandleRequest(Packet packet)
+    private void HandleRequest(TcpClient client, Packet packet)
     {
         if (!keyFiles.ContainsKey(packet.Key))
         {
@@ -76,11 +82,11 @@ public class LocalShareServer
         }
         else if (PacketType.FileSize.Equals(packet.Type))
         {
-            SendFileSizePacket(process);
+            SendFileSizePacket(client, process);
         }
         else if (PacketType.Byte.Equals(packet.Type))
         {
-            SendFilePacket(process, packet.Identifier);
+            SendFilePacket(client, process, packet.Identifier);
         }
 
     }
@@ -89,10 +95,11 @@ public class LocalShareServer
     {
         new Thread(() =>
         {
-            CheckFileSize(path);
             string key = KeyGenerator.GenerateKey();
             FileSendProcess process = new FileSendProcess(key, path);
             keyFiles[key] = process;
+            _udpCallbacker.SendScan();
+            Thread.Sleep(1000);
             SendFileNamePacket(process);
             SendEvent(EventType.StartUploading, process);
             while (!_disposed && keyFiles.ContainsKey(key))
@@ -108,32 +115,17 @@ public class LocalShareServer
         }).Start();
     }
 
-    private void CheckFileSize(string path)
-    {
-        FileInfo fileInfo = new FileInfo(path);
-        if (!fileInfo.Exists)
-        {
-            throw new FileNotFoundException(path);
-        }
-        long fileSize = fileInfo.Length;
-        if (fileSize / Shared.MaxDataSize + 1 >= Math.Pow(10, Shared.PacketIdentifierLength))
-        {
-            Console.WriteLine("Overall file size is too big. Consider changing MaxDataSize.");
-            return;
-        }
-    }
-
     private void SendFileNamePacket(FileSendProcess process)
     {
         SendData(PacketType.FileName, process.Key, 0, EncodingManager.GetBytes(process.FileName));
     }
 
-    private void SendFileSizePacket(FileSendProcess process)
+    private void SendFileSizePacket(TcpClient client, FileSendProcess process)
     {
-        SendData(PacketType.FileSize, process.Key, 0, EncodingManager.GetBytes(process.FileSize + ""));
+        SendData(client, PacketType.FileSize, process.Key, 0, EncodingManager.GetBytes(process.FileSize + ""));
     }
 
-    private void SendFilePacket(FileSendProcess process, long identifier)
+    private void SendFilePacket(TcpClient client, FileSendProcess process, long identifier)
     {
         long bufferSize = Shared.MaxDataSize;
         /*        if (identifier * Shared.MaxDataSize > process.FileSize) //TODO!!!!
@@ -145,15 +137,20 @@ public class LocalShareServer
             return;
         }
         byte[] buffer = new byte[bufferSize];
-        process.Reader.Position = (int)identifier * Shared.MaxDataSize;
+        process.Reader.Position = (int) identifier * Shared.MaxDataSize;
         process.Reader.Read(buffer, 0, buffer.Length);
-        SendData(PacketType.Byte, process.Key, identifier, buffer);
+        SendData(client, PacketType.Byte, process.Key, identifier, buffer);
         process.LastRequest = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 
     private void SendData(PacketType packetType, string key, long identifier, byte[] data)
     {
         _packetSender.SendData(packetType, key, identifier, data);
+    }
+
+    private void SendData(TcpClient client, PacketType packetType, string key, long identifier, byte[] data)
+    {
+        _packetSender.SendData(client, packetType, key, identifier, data);
     }
 
     private void SendEvent(EventType type, FileSendProcess process)
