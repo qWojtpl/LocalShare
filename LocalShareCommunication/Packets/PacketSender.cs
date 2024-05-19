@@ -33,14 +33,14 @@ public class PacketSender : IDisposable
         _tcpClients.Add(client);
     }
 
-    public void SendData(PacketType packetType, string key, long identifier, byte[] data)
+    public void SendData(PacketType packetType, string key, byte[] data)
     {
-        SendPacket(new Packet(packetType, key, identifier, data));
+        SendPacket(new Packet(packetType, key, data));
     }
 
-    public void SendData(TcpClient client, PacketType packetType, string key, long identifier, byte[] data)
+    public void SendData(TcpClient client, PacketType packetType, string key, byte[] data)
     {
-        SendPacket(client, new Packet(packetType, key, identifier, data).Create());
+        SendPacket(client, new Packet(packetType, key, data).Create());
     }
 
     public void SendPacket(Packet packet)

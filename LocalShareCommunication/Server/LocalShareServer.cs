@@ -86,7 +86,7 @@ public class LocalShareServer
         }
         else if (PacketType.Byte.Equals(packet.Type))
         {
-            SendFilePacket(client, process, packet.Identifier);
+            SendFilePacket(client, process, BitConverter.ToInt64(packet.Data));
         }
 
     }
@@ -117,21 +117,22 @@ public class LocalShareServer
 
     private void SendFileNamePacket(FileSendProcess process)
     {
-        SendData(PacketType.FileName, process.Key, 0, EncodingManager.GetBytes(process.FileName));
+        SendData(PacketType.FileName, process.Key, EncodingManager.GetBytes(process.FileName));
     }
 
     private void SendFileSizePacket(TcpClient client, FileSendProcess process)
     {
-        SendData(client, PacketType.FileSize, process.Key, 0, EncodingManager.GetBytes(process.FileSize + ""));
+        SendData(client, PacketType.FileSize, process.Key, EncodingManager.GetBytes(process.FileSize + ""));
     }
 
     private void SendFilePacket(TcpClient client, FileSendProcess process, long identifier)
     {
         long bufferSize = Shared.MaxDataSize;
-        /*        if (identifier * Shared.MaxDataSize > process.FileSize) //TODO!!!!
-                {
-                    bufferSize = process.FileSize - (identifier - 1) * Shared.MaxDataSize;
-                }*/
+        Console.WriteLine("Sending " + identifier);
+        if ((identifier + 1) * Shared.MaxDataSize > process.FileSize)
+        {
+            bufferSize = process.FileSize - (identifier * Shared.MaxDataSize);
+        }
         if (bufferSize <= 0)
         {
             return;
@@ -139,18 +140,18 @@ public class LocalShareServer
         byte[] buffer = new byte[bufferSize];
         process.Reader.Position = (int) identifier * Shared.MaxDataSize;
         process.Reader.Read(buffer, 0, buffer.Length);
-        SendData(client, PacketType.Byte, process.Key, identifier, buffer);
+        SendData(client, PacketType.Byte, process.Key, buffer);
         process.LastRequest = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 
-    private void SendData(PacketType packetType, string key, long identifier, byte[] data)
+    private void SendData(PacketType packetType, string key, byte[] data)
     {
-        _packetSender.SendData(packetType, key, identifier, data);
+        _packetSender.SendData(packetType, key, data);
     }
 
-    private void SendData(TcpClient client, PacketType packetType, string key, long identifier, byte[] data)
+    private void SendData(TcpClient client, PacketType packetType, string key, byte[] data)
     {
-        _packetSender.SendData(client, packetType, key, identifier, data);
+        _packetSender.SendData(client, packetType, key, data);
     }
 
     private void SendEvent(EventType type, FileSendProcess process)

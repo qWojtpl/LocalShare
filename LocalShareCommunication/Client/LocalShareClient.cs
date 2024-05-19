@@ -143,7 +143,7 @@ public class LocalShareClient : IDisposable
 
     private FileProcess? CreateProcess(Packet packet)
     {
-        if (packet.Data.Length == 0 || packet.Identifier != 0)
+        if (packet.Data.Length == 0)
         {
             return null;
         }
@@ -188,29 +188,24 @@ public class LocalShareClient : IDisposable
         {
             return;
         }
-        long identifier = packet.Identifier;
-
-        if (process.LastPacket != identifier)
-        {
-            return;
-        }
 
         if(process.Writer.CanWrite)
         {
             process.ActualSize += packet.Data.Length;
+            Console.WriteLine("Adding " + packet.Data.Length);
+            Console.WriteLine((double)process.ActualSize / process.FileSize);
+            Console.WriteLine(process.ActualSize + "/" + process.FileSize);
             process.Writer.Write(packet.Data, 0, packet.Data.Length);
             process.LastPacket++;
-            RequestPacket(process, process.LastPacket);
         }
 
-        if (process.ActualSize >= process.FileSize && !process.Closed)
+        if (process.ActualSize == process.FileSize && !process.Closed)
         {
             CloseProcess(process);
             SendEvent(EventType.EndDownloading, process);
         } else
         {
-            Console.WriteLine((double) process.ActualSize / process.FileSize);
-            Console.WriteLine(process.ActualSize + "/" + process.FileSize);
+            RequestPacket(process, process.LastPacket);
         }
 
     }
@@ -222,7 +217,7 @@ public class LocalShareClient : IDisposable
             return;
         }
         Console.WriteLine("Requesting " + identifier + " from " + IPAddress.Broadcast + ":" + (Port + 1));
-        _packetSender.SendData(PacketType.Byte, process.Key, identifier, new byte[0]);
+        _packetSender.SendData(PacketType.Byte, process.Key, BitConverter.GetBytes(identifier));
         new Thread(() => CheckTimeout(process, identifier, sleepTime)).Start();
     }
 
@@ -238,7 +233,7 @@ public class LocalShareClient : IDisposable
 
     private void RequestFileSizePacket(FileProcess process)
     {
-        _packetSender.SendData(PacketType.FileSize, process.Key, 0, new byte[0]);
+        _packetSender.SendData(PacketType.FileSize, process.Key, new byte[0]);
     }
 
     private void CreateDirectory()
