@@ -199,7 +199,7 @@ public class LocalShareClient : IDisposable
             process.LastPacket++;
         }
 
-        if (process.ActualSize == process.FileSize && !process.Closed)
+        if (process.ActualSize >= process.FileSize && !process.Closed)
         {
             CloseProcess(process);
             SendEvent(EventType.EndDownloading, process);

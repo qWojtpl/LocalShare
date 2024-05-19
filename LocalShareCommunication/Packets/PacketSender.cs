@@ -1,5 +1,4 @@
-﻿using LocalShareCommunication.Misc;
-using LocalShareCommunication.UdpService;
+﻿using LocalShareCommunication.UdpService;
 using System.Net;
 using System.Net.Sockets;
 
@@ -9,7 +8,7 @@ public class PacketSender : IDisposable
 {
 
     private List<TcpClient> _tcpClients = new();
-    private List<string> _clientAddresses = new();
+    private Dictionary<string, TcpClient> _clientAddresses = new();
     private UdpCallbacker _udpCallbacker;
     public int Port { get; }
 
@@ -22,15 +21,23 @@ public class PacketSender : IDisposable
 
     private void AddClient(IPAddress address)
     {
-        if(_clientAddresses.Contains(address.ToString()))
+        if (_clientAddresses.ContainsKey(address.ToString()))
         {
-            return;
+            if (_clientAddresses[address.ToString()].Connected)
+            {
+                return;
+            }
+            else
+            {
+                _tcpClients.Remove(_clientAddresses[address.ToString()]);
+                _clientAddresses.Remove(address.ToString());
+            }
         }
         TcpClient client = new TcpClient();
         client.Connect(new IPEndPoint(address, Port));
         Console.WriteLine("Adding client: " + address + ":" + Port);
         _tcpClients.Add(client);
-        _clientAddresses.Add(address.ToString());
+        _clientAddresses[address.ToString()] = client;
     }
 
     public void SendData(PacketType packetType, string key, byte[] data)
@@ -69,7 +76,7 @@ public class PacketSender : IDisposable
 
     public void Dispose()
     {
-        foreach(TcpClient client in _tcpClients) 
+        foreach (TcpClient client in _tcpClients)
         {
             client.Close();
         }
