@@ -1,6 +1,8 @@
 ﻿
+using LocalShareCommunication.Misc;
 using System.Net;
 using System.Net.Sockets;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LocalShareCommunication.Packets;
 
@@ -32,9 +34,14 @@ public class PacketListener : IDisposable
             _listener.Start();
             while (!_disposed)
             {
-                TcpClient client = _listener.AcceptTcpClient();
-
-                HandleClient(client);
+                try
+                {
+                    TcpClient client = _listener.AcceptTcpClient();
+                    HandleClient(client);
+                } catch(Exception) 
+                {
+                    return;
+                }
             }
         }).Start();
     }
@@ -56,33 +63,47 @@ public class PacketListener : IDisposable
                 {
                     continue;
                 }
-                int totalBytesRead = 0;
-                int bytesRead;
-                byte[] buffer = new byte[1];
-                byte[] totalResponse = new byte[Shared.PacketLength];
 
-                while (stream.DataAvailable && totalBytesRead < Shared.PacketLength)
+                int totalBytesRead = 0;
+                byte[] dataLengthBytes = new byte[Shared.DataLength];
+                int readDataLength = 0;
+                byte[] totalResponseData = new byte[Shared.PacketLength];
+
+                while (stream.DataAvailable)
                 {
-                    bytesRead = stream.Read(buffer, 0, buffer.Length);
-                    if (bytesRead == 0)
+                    byte[] buffer = new byte[1];
+                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                    if(bytesRead == 0)
                     {
                         break;
                     }
-                    totalResponse[totalBytesRead++] = buffer[0];
+                    totalResponseData[totalBytesRead++] = buffer[0];
+                    if (totalBytesRead < Shared.PacketTypeLength + Shared.KeyLength + 1)
+                    {
+                        continue;
+                    }
+                    if (totalBytesRead < Shared.HeaderLength)
+                    {
+                        dataLengthBytes[readDataLength++] = buffer[0];
+                        continue;
+                    }
+                    if (totalBytesRead == Shared.HeaderLength + BitConverter.ToInt32(dataLengthBytes))
+                    {
+                        byte[] responseData = new byte[totalBytesRead];
+                        for(int i = 0; i < totalBytesRead; i++) 
+                        {
+                            responseData[i] = totalResponseData[i];
+                        }
+                        Packet packet = new Packet(responseData);
+                        var zx = EncodingManager.GetText(packet.Data);
+                        new Thread(() => _handler.Invoke(client, packet)).Start();
+                        totalBytesRead = 0;
+                        dataLengthBytes = new byte[Shared.DataLength];
+                        readDataLength = 0;
+                        totalResponseData = new byte[Shared.PacketLength];
+                    }
                 }
 
-                if (totalBytesRead == 0)
-                {
-                    return;
-                }
-
-                byte[] responseData = new byte[totalBytesRead];
-                for (int i = 0; i < totalBytesRead; i++)
-                {
-                    responseData[i] = totalResponse[i];
-                }
-
-                new Thread(() => _handler.Invoke(client, new Packet(responseData))).Start();
             }
         }).Start();
     }

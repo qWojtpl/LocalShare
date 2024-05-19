@@ -1,4 +1,5 @@
-﻿using LocalShareCommunication.UdpService;
+﻿using LocalShareCommunication.Misc;
+using LocalShareCommunication.UdpService;
 using System.Net;
 using System.Net.Sockets;
 
@@ -8,6 +9,7 @@ public class PacketSender : IDisposable
 {
 
     private List<TcpClient> _tcpClients = new();
+    private List<string> _clientAddresses = new();
     private UdpCallbacker _udpCallbacker;
     public int Port { get; }
 
@@ -20,17 +22,15 @@ public class PacketSender : IDisposable
 
     private void AddClient(IPAddress address)
     {
-        foreach(TcpClient c in _tcpClients)
+        if(_clientAddresses.Contains(address.ToString()))
         {
-            if(((IPEndPoint) c.Client.RemoteEndPoint).Address.Equals(address))
-            {
-                continue;
-            }
+            return;
         }
         TcpClient client = new TcpClient();
         client.Connect(new IPEndPoint(address, Port));
         Console.WriteLine("Adding client: " + address + ":" + Port);
         _tcpClients.Add(client);
+        _clientAddresses.Add(address.ToString());
     }
 
     public void SendData(PacketType packetType, string key, byte[] data)
