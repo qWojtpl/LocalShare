@@ -1,6 +1,4 @@
-﻿
-using LocalShareCommunication;
-using LocalShareCommunication.Client;
+﻿using LocalShareCommunication.Client;
 using LocalShareCommunication.Server;
 
 namespace LocalShareApplication.Misc;
@@ -10,7 +8,6 @@ public static class CommunicationManager
 
     private static List<Action> clientStartHandlers = new List<Action>();
     private static bool pathInitialized = false;
-    private static bool maxBytesPerPacketInitialized = false;
 
     public static LocalShareClient? Client
     {
@@ -19,7 +16,6 @@ public static class CommunicationManager
             if (_client == null && SettingsManager.ListenForNewFiles)
             {
                 InitPath();
-                InitMaxBytesPerPacket();
                 _client = new LocalShareClient(SettingsManager.Port, SettingsManager.CallbackPort);
                 _client.Start();
                 foreach(Action handler in clientStartHandlers)
@@ -40,7 +36,6 @@ public static class CommunicationManager
             if (_server == null)
             {
                 InitPath();
-                InitMaxBytesPerPacket();
                 _server = new LocalShareServer(SettingsManager.Port, SettingsManager.CallbackPort);
                 _server.Start();
             }
@@ -97,16 +92,6 @@ public static class CommunicationManager
         Shared.FilesPath = Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath, "LocalShare/");
 #endif
 
-    }
-
-    private static void InitMaxBytesPerPacket()
-    {
-        if (maxBytesPerPacketInitialized)
-        {
-            return;
-        }
-        maxBytesPerPacketInitialized = true;
-        Shared.MaxDataSize = SettingsManager.MaxBytesPerPacket;
     }
 
 }
