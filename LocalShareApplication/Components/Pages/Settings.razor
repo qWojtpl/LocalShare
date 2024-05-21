@@ -4,7 +4,6 @@
 
     int port = SettingsManager.Port;
     int callbackPort = SettingsManager.CallbackPort;
-    int maxBytesPerPacket = SettingsManager.MaxBytesPerPacket;
     string samePortWarning = "none";
     bool listenForNewFilesChecked = SettingsManager.ListenForNewFiles;
 
@@ -50,23 +49,6 @@
         {
             samePortWarning = "block";
             throw new Exception();
-        }
-    }
-
-    private void SetMaxBytesPerPacket(string maxBytesPerPacket)
-    {
-        try
-        {
-            SettingsManager.MaxBytesPerPacket = int.Parse(maxBytesPerPacket);
-            if (SettingsManager.MaxBytesPerPacket <= 0)
-            {
-                throw new Exception();
-            }
-            this.maxBytesPerPacket = SettingsManager.MaxBytesPerPacket;
-            Shared.MaxDataSize = SettingsManager.MaxBytesPerPacket;
-        } catch (Exception)
-        {
-            SettingsManager.MaxBytesPerPacket = SettingsManager.Default.MaxBytesPerPacket;
         }
     }
 
@@ -125,15 +107,6 @@
                 </div>
             </div>
             <sup class="option-warning" style="display: @samePortWarning">@LanguageManager.Get("samePortsWarning")</sup>
-            <div class="option">
-                <div class="option-label">
-                    @LanguageManager.Get("maxBytesPerPacket")
-                </div>
-                <div class="option-input">
-                    <input type="number" value="@maxBytesPerPacket" @oninput="(EventArgs) => { SetMaxBytesPerPacket(EventArgs.Value.ToString()); }" />
-                </div>
-            </div>
-            <sup class="option-warning" style="color: var(--font-subcolor);text-align:center;">@LanguageManager.Get("maxBytesInfo")</sup>
             <div class="option">
                 <div class="option-label option-label-checkbox">
                     @LanguageManager.Get("listenForNewFiles")

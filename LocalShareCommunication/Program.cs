@@ -1,4 +1,7 @@
-﻿namespace LocalShareCommunication;
+﻿using LocalShareCommunication.Client;
+using LocalShareCommunication.Server;
+
+namespace LocalShareCommunication;
 
 internal class Program
 {
@@ -6,8 +9,11 @@ internal class Program
     {
         LocalShareServer server = new LocalShareServer();
         server.Start();
-        server.SendFile(@"D:\SteamLibrary\steamapps\common\OMSI 2\.mods\Jelcz M081MB Vero v.1.1.rar");
-        new LocalShareClient().Start();
+        LocalShareClient client = new LocalShareClient();
+        client.Start();
+        server.SendFile(@"Heartbeat_Connection.mp4");
+        Thread.Sleep(2000);
+        server.SendFile(@"Heartbeat_Connection.mp4");
         Task.Run(() =>
         {
             while(true)

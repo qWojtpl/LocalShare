@@ -9,8 +9,8 @@ public class Packet
     private PacketType _type;
     public string Key { get => _key; }
     private string _key;
-    public long Identifier { get => _identifier; }
-    private long _identifier = 0;
+    public int DataLength { get => _dataLength; }
+    private int _dataLength;
     public byte[] Data { get => _data; }
     private byte[] _data;
 
@@ -22,19 +22,19 @@ public class Packet
         }
         InitPacketType(responseData);
         InitKey(responseData);
-        InitIdentifier(responseData);
+        InitDataLength(responseData);
         InitData(responseData);
     }
 
-    public Packet(PacketType type, string key, long identifier, byte[] data)
+    public Packet(PacketType type, string key, byte[] data)
     {
         _type = type;
         _key = key;
-        _identifier = identifier;
         if(data.Length > Shared.MaxDataSize)
         {
             throw new Exception("Data too large.");
         }
+        _dataLength = data.Length;
         _data = data;
     }
 
@@ -45,12 +45,12 @@ public class Packet
         byte[] keyBytes = EncodingManager.GetBytes(_key);
         for (int i = 0; i < Shared.KeyLength; i++)
         {
-            newData[i + 1] = keyBytes[i];
+            newData[i + Shared.PacketTypeLength] = keyBytes[i];
         }
-        byte[] identifierBytes = BitConverter.GetBytes(_identifier);
-        for (int i = 0; i < Shared.PacketIdentifierLength; i++)
+        byte[] dataLengthBytes = BitConverter.GetBytes(_dataLength);
+        for (int i = 0; i < Shared.DataLength; i++)
         {
-            newData[Shared.KeyLength + Shared.PacketTypeLength + i] = identifierBytes[i];
+            newData[i + Shared.PacketTypeLength + Shared.KeyLength] = dataLengthBytes[i];
         }
         for (int i = 0; i < _data.Length; i++)
         {
@@ -86,25 +86,23 @@ public class Packet
         _key = EncodingManager.GetText(keyBytes);
     }
 
-    private void InitIdentifier(byte[] responseData)
+    private void InitDataLength(byte[] responseData)
     {
-        byte[] identifierBytes = new byte[Shared.PacketIdentifierLength];
-        for (int i = 0; i < Shared.PacketIdentifierLength; i++)
+        byte[] dataLengthBytes = new byte[Shared.DataLength];
+        for (int i = 0; i < Shared.DataLength; i++)
         {
-            identifierBytes[i] = responseData[i + Shared.KeyLength + Shared.PacketTypeLength];
+            dataLengthBytes[i] = responseData[i + Shared.PacketTypeLength + Shared.KeyLength];
         }
-        _identifier = BitConverter.ToInt64(identifierBytes);
+        _dataLength = BitConverter.ToInt32(dataLengthBytes);
     }
 
     private void InitData(byte[] responseData)
     {
-        _data = new byte[responseData.Length - Shared.HeaderLength];
-
-        for (int i = Shared.HeaderLength; i < responseData.Length; i++)
+        _data = new byte[_dataLength];
+        for (int i = 0; i < _dataLength; i++)
         {
-            _data[i - Shared.HeaderLength] = responseData[i];
+            _data[i] = responseData[Shared.HeaderLength + i];
         }
-
     }
 
 }

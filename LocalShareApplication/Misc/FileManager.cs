@@ -1,5 +1,6 @@
 ﻿
 using LocalShareApplication.Misc;
+using LocalShareCommunication.Client;
 using LocalShareCommunication.Server;
 
 namespace LocalShareApplication;
@@ -7,6 +8,7 @@ namespace LocalShareApplication;
 public static class FileManager
 {
 
+    private static LocalShareClient? _client = CommunicationManager.Client;
     private static LocalShareServer _server = CommunicationManager.Server;
 
 
