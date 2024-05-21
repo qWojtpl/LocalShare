@@ -1,4 +1,5 @@
-﻿using LocalShareCommunication.Client;
+﻿using LocalShareCommunication;
+using LocalShareCommunication.Client;
 using LocalShareCommunication.Server;
 
 namespace LocalShareApplication.Misc;
